@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Door Seed-soft</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_search">Search BLE</string>
+    <string name="action_settings">Exit</string>
+
+    <string name="txt_header">SeedSoft</string>
+    <string name="lbl_distance">Distance</string>
+    <string name="lbl_devicename">Devicename :</string>
+    <string name="lbl_statusDoor">Status Door</string>
+    <string name="btn_open">Open</string>
+    <string name="btn_off">Close door</string>
+    <string name="ble_not_supported">Device Not Supported.</string>
+</resources>
