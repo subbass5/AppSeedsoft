@@ -76,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
     private String topicMobile  = "/device/mobile/";
     private String topicMobile_becon = "/device/mobile_beacon/";
     boolean st = true;
-    String deviceID = "001";
-
+    private String deviceID = "001";
+    private TextView tv;
 
     MqttAndroidClient mqttAndroidClient;
 
@@ -91,11 +91,11 @@ public class MainActivity extends AppCompatActivity {
 
         progressDialog_connect =new ProgressDialog(this);
         openConnect(n);
-
+        tv = (TextView) findViewById(R.id.txt_state);
         btnOpen = (Button) findViewById(R.id.btn_Open);
         status = (EditText) findViewById(R.id.state);
         status.setEnabled(false);
-
+        tv.setText("Wellcome.");
         setupMQTT();
         // init BLE
         btManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        // Inflate the menu; this adds items to the action bar if it is present.
+
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -130,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
     {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_exit)
         {
             finish();
@@ -150,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
             {
                 if (btAdapter != null)
                 {
+                    tv.setText("Stop Scan.");
                     btAdapter.stopLeScan(leScanCallback);
                 }
             }
@@ -157,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
             {
                 if (btAdapter != null)
                 {
+                    tv.setText("Scannig beacon.");
                     btAdapter.startLeScan(leScanCallback);
                 }
             }
@@ -167,9 +168,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    // ------------------------------------------------------------------------
-    // Inner classes
-    // ------------------------------------------------------------------------
 
     private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback()
     {
@@ -200,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
 
 //              Toast.makeText(MainActivity.this, "Tx "+TxPower, Toast.LENGTH_SHORT).show();
 //                    txt_distance.setText(""+calculateDistance(TxPower,rssi)+" m. ");
-                if (Rssi_int < 50 && TxPower == -59 && st == true){
+                if (Rssi_int < 80 && TxPower == -59 && st == true){
                     publishMessage(topicMobile_becon, String.valueOf(obj));
                 }
 //                Toast.makeText(MainActivity.this, ""+scan, Toast.LENGTH_SHORT).show();
@@ -219,7 +217,6 @@ public class MainActivity extends AppCompatActivity {
         if (rssi == 0) {
             return -1.0f; // if we cannot determine distance, return -1.
         }
-
         double ratio = rssi * 1.0 / txPower;
 
         if (ratio < 1.0) {
@@ -247,7 +244,6 @@ public class MainActivity extends AppCompatActivity {
                     status.setText("Close");
                 }
             }
-
             @Override
             public void connectionLost(Throwable cause) {
                 addToHistory("The Connection was lost.");
@@ -302,8 +298,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void addToHistory(String mainText){
-
         Log.d(TAG,mainText);
+
 
 
     }
