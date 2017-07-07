@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -48,18 +49,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = "MainActivity";
     private ProgressDialog progressDialog_connect;
     private  int n = 0 ;
-
     private BluetoothManager btManager;
     private BluetoothAdapter btAdapter;
     private Handler scanHandler = new Handler();
     private int scan_interval_ms = 10000;
     private boolean isScanning = false;
-    TextView txt_distance,txtDevicename;
-    EditText status;
-    Button btnOpen,btnOFF;
+    TextView status;
+    Button btnOpen;
+    GPSTracker gps;
 
     //=====================mqtt
-    private TextView textStateDoor1,textStateDoor2;
     private static final String TAG = "MQTT_NAT";
     private String subscribeTopic = "/device/door/id001/status/";
     private String content      = "Hello CloudMQTT";
@@ -78,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
     boolean st = true;
     private String deviceID = "001";
     private TextView tv;
-
     MqttAndroidClient mqttAndroidClient;
 
     @Override
@@ -93,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         openConnect(n);
         tv = (TextView) findViewById(R.id.txt_state);
         btnOpen = (Button) findViewById(R.id.btn_Open);
-        status = (EditText) findViewById(R.id.state);
+        status = (TextView) findViewById(R.id.state);
         status.setEnabled(false);
         tv.setText("Wellcome.");
         setupMQTT();
@@ -106,6 +104,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 obj = new JSONObject();
                 try {
+                    gps = new GPSTracker(MainActivity.this);
+                    if(!gps.canGetLocation()){
+                        Intent intent = new Intent(Settings.ACTION_LOCALE_SETTINGS);
+                        startActivity(intent);
+                    }else{
+                        obj.put("latitude",gps.getLatitude());
+                        obj.put("longitude",gps.getLongitude());
+                    }
                     obj.put("mobile_id","001");
                     obj.put("device_id","001");
                 } catch (JSONException e) {
@@ -174,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord)
         {
+            obj = new JSONObject();
             final BluetoothLeDevice devicele = new BluetoothLeDevice(device,rssi,scanRecord,System.currentTimeMillis());
             String scan = null;
             String strRSSI = String.valueOf(rssi);
@@ -182,32 +189,29 @@ public class MainActivity extends AppCompatActivity {
             if(BeaconUtils.getBeaconType(devicele) == BeaconType.IBEACON ){
                 final IBeaconDevice iBeaconDevice = new IBeaconDevice(devicele);
                 int TxPower = iBeaconDevice.getCalibratedTxPower();
-                obj = new JSONObject();
+
                 try {
                     obj.put("mobile_id",deviceID);
                     obj.put("device_id","001");
                     obj.put("rssi",""+strRSSI.substring(1));
                     obj.put("mac_beacon_mobile",""+strMac.toLowerCase());
+                    gps = new GPSTracker(MainActivity.this);
+                    if(!gps.canGetLocation()){
+                        Intent intent = new Intent(Settings.ACTION_LOCALE_SETTINGS);
+                        startActivity(intent);
+                    }else{
+                        obj.put("latitude",gps.getLatitude());
+                        obj.put("longitude",gps.getLongitude());
+                    }
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-//                Toast.makeText(MainActivity.this, ""+String.valueOf(obj), Toast.LENGTH_SHORT).show();
-                scan = iBeaconDevice.getName()+ "  TXPOWER = "+TxPower+" RSSI = "+rssi +
-                        "Distance = "+calculateDistance(TxPower,rssi)+"\n";
-
-//              Toast.makeText(MainActivity.this, "Tx "+TxPower, Toast.LENGTH_SHORT).show();
-//                    txt_distance.setText(""+calculateDistance(TxPower,rssi)+" m. ");
+//                scan = iBeaconDevice.getName()+ "  TXPOWER = "+TxPower+" RSSI = "+rssi +
+//                        "Distance = "+calculateDistance(TxPower,rssi)+"\n";
                 if (Rssi_int < 80 && TxPower == -59 && st == true){
                     publishMessage(topicMobile_becon, String.valueOf(obj));
                 }
-//                Toast.makeText(MainActivity.this, ""+scan, Toast.LENGTH_SHORT).show();
-
-//                  Toast.makeText(MainActivity.this, "Door open", Toast.LENGTH_SHORT).show();
-
-//                Toast.makeText(MainActivity.this, iBeaconDevice.getName()+ "  TXPOWER = "+TxPower+" RSSI = "+rssi +
-//                        "Distance = "+calculateDistance(TxPower,rssi), Toast.LENGTH_SHORT).show();
-
             }
         }
     };
@@ -240,7 +244,14 @@ public class MainActivity extends AppCompatActivity {
                     addToHistory("Connected to "+serverURI);
                     Toast.makeText(MainActivity.this,"Connected to "+serverURI.substring(6,20), Toast.LENGTH_SHORT).show();
                     openConnect(n+=1);
-                    publishMessage("/device/mobile/con/","connect from mobile id "+deviceID);
+                    gps = new GPSTracker(MainActivity.this);
+                    if (!gps.canGetLocation()){
+                        Intent in = new Intent(Settings.ACTION_LOCALE_SETTINGS);
+                        startActivity(in);
+                    }
+                    publishMessage("/device/mobile/con/"
+                            ,"connect from mobile id "+deviceID+"  Location is "+gps.getLatitude()
+                            +","+gps.getLongitude());
                     status.setText("Close");
                 }
             }
@@ -383,9 +394,9 @@ public class MainActivity extends AppCompatActivity {
             Intent enable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enable,1);
         }
-//        if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
-//            Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-//        }
+        if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
+            Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
+        }
     }
     @Override
     public void onBackPressed() {
