@@ -1,11 +1,8 @@
 package seedsoft.apps.com.appseedsoft;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.PersistableBundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Window;
 
@@ -29,7 +26,7 @@ public class Splash_Activity extends AppCompatActivity{
 
         runnable = new Runnable() {
             public void run() {
-                Intent intent = new Intent(Splash_Activity.this, MainActivity.class);
+                Intent intent = new Intent(Splash_Activity.this, Login_Activity.class);
                 startActivity(intent);
                 finish();
             }

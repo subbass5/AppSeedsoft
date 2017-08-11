@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#5cb85c</color>
+    <color name="colorPrimaryDark">#5cb85c</color>
+    <color name="colorAccent">#f0ad4e</color>
+
+    <color name="PrimaryColor">#ff1b6bae</color>
+    <color name="PrimaryDarkColor">#ff134a88</color>
     <!-- Bootstrap Brand Colors (Universal) -->
 
     <!-- Grayscale -->
@@ -33,4 +36,7 @@
     <color name="bootstrap_dropdown_divider">#e7e7e7</color>
     <color name="bootstrap_well_border_color">#E7E7E7</color>
     <color name="bootstrap_alert_cross_default">#64818a91</color>
+
+    <color name="background_close">#64818a91</color>
+    <color name="background_open">#fa029302</color>
 </resources>

@@ -5,27 +5,29 @@ android {
     buildToolsVersion "26.0.0"
     defaultConfig {
         applicationId "seedsoft.apps.com.appseedsoft"
-        minSdkVersion 21
+        minSdkVersion 18
         targetSdkVersion 22
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            buildConfigField "String", "MQTT_TOPIC", '"android-things/benjamin"'
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
 }
 repositories {
     maven {
         url "https://dl.bintray.com/alt236/maven"
     }
     mavenCentral()
-    maven {
-        url "https://repo.eclipse.org/content/repositories/paho-releases/"
-    }
+
 }
 
 
@@ -35,9 +37,19 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:support-vector-drawable:25.3.1'
     compile 'uk.co.alt236:bluetooth-le-library-android:1.0.0'
-    compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
-    compile 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.0'
+    compile 'de.hdodenhof:circleimageview:2.1.0'
+    compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+
+    compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.1'
+    compile 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+
     testCompile 'junit:junit:4.12'
 }

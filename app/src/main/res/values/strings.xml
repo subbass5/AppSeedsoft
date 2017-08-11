@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">Door Seed-soft</string>
+    <string name="app_name">AP Intime</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_search">Search BLE</string>
     <string name="action_settings">Exit</string>
-
+    <string name="chang_device">Chang ID</string>
     <string name="txt_header">SeedSoft</string>
     <string name="lbl_distance">Distance</string>
     <string name="lbl_devicename">Devicename :</string>
@@ -11,4 +11,37 @@
     <string name="btn_open">Open</string>
     <string name="btn_off">Close door</string>
     <string name="ble_not_supported">Device Not Supported.</string>
+
+    <string name="txt_header_login">Login Emplayees</string>
+    <string name="btn_login">  Login</string>
+    <string name="btn_register">  Register</string>
+    <string name="btn_logout">  Log out</string>
+
+    <string name="lbl_wraning">โปรดใส่รหัสส่วนตัวเพื่อลงเวลาเข้างาน</string>
+    <string name="btn_checkin">Check In</string>
+
+
+    <string name="lbl_position">Position :</string>
+    <string name="lbl_department">Department :</string>
+    <string name="lbl_last_actvity">Last Avtivity</string>
+    <string name="lbl_lastcheckin">Last Check In</string>
+    <string name="lbl_lastcheckout">Last Check Out</string>
+    <string name="lbl_phone">Phone : </string>
+    <string name="lbl_email">Email : </string>
+
+    <string name="action1">Dash board</string>
+    <string name="action2">Check In</string>
+    <string name="action3">History</string>
+    <string name="action4">Profile</string>
+    <string name="action5">Setting Time</string>
+    <string name="action6">Log Out</string>
+    <string name="title_activity_main2">Title</string>
+
+
+
+    <string name="lbl_blescanning">BLE SCANNING</string>
+    <string name="lbl_connecting">CONNECTING</string>
+    <string name="navigation_drawer_open">Open</string>
+    <string name="navigation_drawer_close">Close</string>
+
 </resources>

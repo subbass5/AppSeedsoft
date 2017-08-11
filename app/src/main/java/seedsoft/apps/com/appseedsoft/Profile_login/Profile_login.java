@@ -8,7 +8,7 @@ import org.json.JSONObject;
  */
 
 public class Profile_login {
-    private  String ID,staff_id,nameStaff,emailStaff,phoneStaff,pathProfile, status,locations;
+    private  String ID,staff_id,nameStaff,emailStaff,phoneStaff,pathProfile,position,department,status,locations,history;
     private final String Obj;
     public Profile_login(String Obj){
         this.Obj = Obj;
@@ -21,7 +21,11 @@ public class Profile_login {
             phoneStaff = new String(object.getString("phone"));
             pathProfile = new String(object.getString("img"));
             status = new String(object.getString("status"));
-            locations = new String(object.getString("location"));
+            department = new String(object.getString("department"));
+            position = new String(object.getString("position"));
+            locations = new String(""+object.get("location"));
+            history = new String(object.getString("history"));
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -47,6 +51,12 @@ public class Profile_login {
     public String getStatus(){
         return status;
     }
-    public String getLocations(){return locations;}
+    public String getLocations_Array(){return locations;}
+    public String getPosition(){return position;}
+    public String getDepartment(){
+        return department;
+    }
+    public String getHistory_Array(){return history;}
+
 
 }

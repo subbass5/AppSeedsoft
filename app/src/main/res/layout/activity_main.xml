@@ -3,15 +3,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bootstrap_brand_success"
-    tools:context=".MainActivity"
+    android:background="#5bb693"
+    tools:context=".NO_USE.MainActivity1"
     android:weightSum="1">
+
     <LinearLayout
-        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/lbl_status"
@@ -21,43 +22,46 @@
             android:textAlignment="textStart"
             android:textColor="@color/switch_thumb_normal_material_light"
             android:textSize="40sp" />
-
-        <EditText
+        <TextView
             android:id="@+id/state"
-            android:layout_width="45dp"
-            android:layout_height="30dp"
-            android:layout_marginTop="30dp"
-            android:background="#FFFFFF"
-            android:textAlignment="center"
-            android:textColor="@color/bootstrap_brand_primary" />
+            android:layout_marginTop="20dp"
+            android:textSize="25sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/bootstrap_brand_primary"
+            />
+
+
+
         <LinearLayout
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="40dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/btn_Open"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#FF0000"
+                android:backgroundTint="@color/bootstrap_brand_warning"
                 android:text="@string/btn_open"
                 android:textColor="@color/background_floating_material_light" />
 
         </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
 
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/txt_state"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
-                android:text="scanning"
+                android:text="scanning beacon"
                 android:textAlignment="center"
                 android:textColor="@color/bootstrap_dropdown_divider"
                 android:textSize="24sp" />
