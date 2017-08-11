@@ -168,33 +168,15 @@ public class MainActivity extends AppCompatActivity
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        connectionInternet = new ConnectionDetector(getApplicationContext());
         txt_name_user = (TextView) findViewById(R.id.name_user);
 
-        pref = getApplicationContext().getSharedPreferences(Login_Activity.MyPREFERENCES, 0);
-        editor = pref.edit();
-
-
-        data_mobile = new Detail_mobile();
-        Api_key = pref.getString(Login_Activity.API,null);
-//        Log.d("API",Api_key);
-        link = "http://128.199.196.236/api/staff/acesstime?api_token="+Api_key;
-        profile = new Profile_login(pref.getString(Login_Activity.JSON_OBJ,null));
-
+        init();
         fragmentManager = getSupportFragmentManager();
         fragment = new Fragment_CheckIn(Api_key);
         transaction = fragmentManager.openTransaction();
         transaction.add(R.id.content,fragment).commit();
 
-        dt = new Detail_mobile();
-        // init BLE
-        btManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
-        btAdapter = btManager.getAdapter();
-        Devicename = btAdapter.getName();
-        mac = data_mobile.getMac();
-        scanHandler.post(scanRunnable);
-//        setupMQTT();
-        mqtt_service = new MQTT_SERVICE(MainActivity.this);
+
 
         bottomNavigationView = (BottomNavigationView)
                 findViewById(R.id.navigation);
@@ -241,7 +223,25 @@ public class MainActivity extends AppCompatActivity
                 });
 
     }
+    private void init(){
+        connectionInternet = new ConnectionDetector(getApplicationContext());
+        pref = getApplicationContext().getSharedPreferences(Login_Activity.MyPREFERENCES, 0);
+        editor = pref.edit();
+        data_mobile = new Detail_mobile();
+        Api_key = pref.getString(Login_Activity.API,null);
 
+        link = "http://128.199.196.236/api/staff/acesstime?api_token="+Api_key;
+        profile = new Profile_login(pref.getString(Login_Activity.JSON_OBJ,null));
+        dt = new Detail_mobile();
+
+        // init BLE
+        btManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
+        btAdapter = btManager.getAdapter();
+        Devicename = btAdapter.getName();
+        mac = data_mobile.getMac();
+        mqtt_service = new MQTT_SERVICE(MainActivity.this);
+
+    }
 
     private Runnable scanRunnable = new Runnable()
     {
@@ -263,7 +263,6 @@ public class MainActivity extends AppCompatActivity
                 String feed = feeddataHistory(url+Api_key);
                 profile = new Profile_login(feed);
                 timeAlert = getTimeAlert(profile.getID());
-//                Log.e("timealert",timeAlert);
 
                 if(!TextUtils.isEmpty(timein) && !TextUtils.isEmpty(timeout)) {
                     boolean state1 = dt.getLengthTime(timein, timeout);
@@ -442,7 +441,7 @@ public class MainActivity extends AppCompatActivity
          bulider.setPositiveButton("OK", new DialogInterface.OnClickListener() {
              @Override
              public void onClick(DialogInterface dialog, int which) {
-//                 final JSONObject objstting = new JSONObject();
+
                  String str = sp.getSelectedItem().toString();
                  String[] strSub = str.split(" ");
                  mHelper = new MyDbHelper(MainActivity.this);
@@ -494,7 +493,6 @@ public class MainActivity extends AppCompatActivity
      private void feedDataTimework(){
          try {
              String gets =  new GetDataAPI(getApplicationContext()).execute(link).get();
-//             Log.e("get",""+gets);
              if(!TextUtils.isEmpty(gets)){
                  JSONObject obj = new JSONObject(gets);
                  Accesstime accesstime = new Accesstime(obj.getString("accesstime"));
@@ -521,7 +519,7 @@ public class MainActivity extends AppCompatActivity
          String feed = "";
          try {
              feed = new GetDataAPI(getApplicationContext()).execute(urls).get();
-             Log.e("URL",urls);
+//             Log.e("URL",urls);
          } catch (InterruptedException e) {
              e.printStackTrace();
              showDialog(e.toString());
@@ -533,7 +531,7 @@ public class MainActivity extends AppCompatActivity
      }
 
      private void showDialog(String dialog){
-         Toast.makeText(getApplicationContext(), ""+dialog, Toast.LENGTH_SHORT).show();
+
     }
 
 
@@ -542,7 +540,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord)
         {
-//            Toast.makeText(MainActivity.this, "Scanning", Toast.LENGTH_SHORT).show();
+
             obj = new JSONObject();
             final BluetoothLeDevice devicele = new BluetoothLeDevice(device,rssi,scanRecord,System.currentTimeMillis());
             String scan = null;
@@ -645,19 +643,24 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onResume() {
+
+        try{
+            scanHandler.post(scanRunnable);
+            String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+            if(!provider.contains("gps")){ //if gps is disabled
+                final Intent poke = new Intent();
+                poke.setClassName("com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider");
+                poke.addCategory(Intent.CATEGORY_ALTERNATIVE);
+                poke.setData(Uri.parse("3"));
+                sendBroadcast(poke);
+            }
+            feedDataTimework();
+
+        }catch (Exception e){
+            Log.e("Error at onResume",e.toString());
+        }
         super.onResume();
 
-        String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
-        if(!provider.contains("gps")){ //if gps is disabled
-            final Intent poke = new Intent();
-            poke.setClassName("com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider");
-            poke.addCategory(Intent.CATEGORY_ALTERNATIVE);
-            poke.setData(Uri.parse("3"));
-            sendBroadcast(poke);
-        }
-
-        feedDataTimework();
-//        profile = new Profile_login(feeddataHistory(url));
     }
 
     @Override

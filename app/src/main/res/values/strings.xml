@@ -43,5 +43,6 @@
     <string name="lbl_connecting">CONNECTING</string>
     <string name="navigation_drawer_open">Open</string>
     <string name="navigation_drawer_close">Close</string>
+    <string name="lbl_btndashboard">UNLOCK</string>
 
 </resources>

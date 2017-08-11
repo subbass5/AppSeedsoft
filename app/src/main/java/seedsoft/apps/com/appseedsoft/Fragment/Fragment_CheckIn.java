@@ -120,33 +120,37 @@ public class Fragment_CheckIn extends Fragment{
         tv_location = (TextView) view.findViewById(R.id.txt_local);
         tv_state_now  = (TextView) view.findViewById(R.id.txt_state_now);
         tv_day = (TextView) view.findViewById(R.id.txt_day);
+        init();
 
+    }
 
+    private void init(){
         dt = new Detail_mobile();
         mqtt_service = new MQTT_SERVICE(getContext());
-
-
         // get  session
         pref = getContext().getSharedPreferences(Login_Activity.MyPREFERENCES, 0);
         editor = pref.edit();
-
 
         mHelper = new MyDbHelper(getContext());
         mDb = mHelper.getWritableDatabase();
         sharedpreferences = getActivity().getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
         editor = sharedpreferences.edit();
-        new GetData(getContext()).execute(url+apiKey);
 
     }
+
 
     private Runnable scanRunnable = new Runnable()
     {
         @Override
         public void run() {
-            tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
-            tv_day.setText(""+dt.dayName());
-            tv_time.setText(""+dt.getDateFromat("HH:mm"));
-            scanHandler.postDelayed(scanRunnable, scan_interval_ms);
+            try {
+                tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
+                tv_day.setText(""+dt.dayName());
+                tv_time.setText(""+dt.getDateFromat("HH:mm"));
+                scanHandler.postDelayed(scanRunnable, scan_interval_ms);
+            }catch (Exception e){
+                Log.e("Error at ScanRunnable",e.toString());
+            }
 
         }
     };
@@ -165,6 +169,8 @@ public class Fragment_CheckIn extends Fragment{
 
 
     public void alertConfirm(){
+      try{
+
 
         profile = new Profile_login(feedDataNow(url+ apiKey));
         if (profile.getHistory_Array()!=null) {
@@ -186,9 +192,9 @@ public class Fragment_CheckIn extends Fragment{
         builder.setPositiveButton("ใช่", new DialogInterface.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             public void onClick(DialogInterface dialog, int id) {
-
                 String state = btnCheck.getText().toString();
                 time = ""+tv_date.getText().toString()+" "+tv_time.getText().toString();
+
                 if(state.equals("Check In")){
                     keytime = profile.getID()+"|"+dt.getDateFromat("yyyyMMddHHmm");
                 }
@@ -210,11 +216,8 @@ public class Fragment_CheckIn extends Fragment{
                 }
 
                 mqtt_service.publishMessage(topicCheckin,sendCheckin.toString());
-
                 Toast.makeText(getContext(), ""+btnCheck.getText()+" เสร็จสิ้น", Toast.LENGTH_SHORT).show();
-
                 upDateUI(state,time);
-
                 dialog.dismiss();
             }
         });
@@ -225,56 +228,82 @@ public class Fragment_CheckIn extends Fragment{
             }
         });
         builder.show();
+
+      }catch (Exception e){
+          Log.e("Error at alertConfirm()",e.toString());
+      }
     }
 
 
     private void upDateUI(String status ,String time){
-        if (status.equals("Check In")) {
-            btnCheck.setText("Check Out");
-            btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_danger)));
-            tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_success));
-            tv_state_now.setText("Status : " + status + "  Time :" + time);
-        } else {
-            btnCheck.setText("Check In");
-            btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_info)));
-            tv_state_now.setText("Status : " + status + "  Time :" + time);
-            tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_warning));
+        try{
+            if (status.equals("Check In")) {
+                btnCheck.setText("Check Out");
+                btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_danger)));
+                tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_success));
+                tv_state_now.setText("Status : " + status + "  Time :" + time);
+            } else {
+                btnCheck.setText("Check In");
+                btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_info)));
+                tv_state_now.setText("Status : " + status + "  Time :" + time);
+                tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_warning));
 //                Toast.makeText(getActivity().getApplicationContext(), "Check Out successfully.", Toast.LENGTH_SHORT).show();
+            }
+        }catch (Exception e){
+            Log.e("Error at upDateUI()",e.toString());
         }
+
     }
 
     private String getGPS(){
+        try{
+                JSONObject json  = new JSONObject();
+                gps = new GPSTracker(getContext());
 
-        JSONObject json  = new JSONObject();
-        gps = new GPSTracker(getContext());
+                if (!gps.canGetLocation()){
+                    gps.showSettingsAlert();
+                }
+                try {
+                    json.put("lat",gps.getLatitude());
+                    json.put("longi",gps.getLongitude());
 
-        if (!gps.canGetLocation()){
-            gps.showSettingsAlert();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                    return json.toString();
+
+        }catch(Exception e){
+
+            Log.e("Error at getGPS()",e.toString());
+            return null;
         }
-        try {
-            json.put("lat",gps.getLatitude());
-            json.put("longi",gps.getLongitude());
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json.toString();
     }
 
 
     @Override
     public void onDestroy() {
-        scanHandler.removeCallbacksAndMessages(null);
+        scanHandler.removeCallbacksAndMessages(scanRunnable);
         super.onDestroy();
+    }
+
+    @Override
+    public void onResume() {
+        try{
+            init();
+            scanHandler.post(scanRunnable);
+            new GetData(getContext()).execute(url+apiKey);
+
+        }catch (Exception e){
+            Log.e("Error at onResume Checkin",e.toString());
+        }
+        super.onResume();
     }
 
     public class GetData extends AsyncTask<String,Voice,String> {
         private Context context;
 
-
         public GetData(Context context){
             this.context = context;
-
         }
 
         @Override
@@ -302,69 +331,81 @@ public class Fragment_CheckIn extends Fragment{
 
         @Override
         protected void onPostExecute(String s) {
+            try{
 
-            if(!TextUtils.isEmpty(s)){
-                if(progress.isShowing())  progress.dismiss();
+                if(!TextUtils.isEmpty(s)){
+                    if(progress.isShowing())  progress.dismiss();
 
-                profile = new Profile_login(s);
-                currentLocation = new Current_Location(profile.getLocations_Array(),getGPS());
-                idLocation = currentLocation.getIdLocation();
-                name_current = currentLocation.getNamelocation();
-                lat_current = currentLocation.getLatitude();
-                long_current = currentLocation.getLongitude();
+                    profile = new Profile_login(s);
+                    currentLocation = new Current_Location(profile.getLocations_Array(),getGPS());
+                    idLocation = currentLocation.getIdLocation();
+                    name_current = currentLocation.getNamelocation();
+                    lat_current = currentLocation.getLatitude();
+                    long_current = currentLocation.getLongitude();
 
-                if(!TextUtils.isEmpty(name_current)){   // if your current side work
-                    tv_state_now.setText("Wellcome.");
-                    tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_primary));
-                    tv_location.setText(currentLocation.getNamelocation());
-                }else {
-                    tv_location.setText("คุณอยู่นอกพื้นที่");
-                    tv_state_now.setText("Wellcome.");
-                    tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_info));
+                    if(!TextUtils.isEmpty(name_current)){   // if your current side work
+                        tv_state_now.setText("Wellcome.");
+                        tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_primary));
+                        tv_location.setText(currentLocation.getNamelocation());
+                    }else {
+                        tv_location.setText("คุณอยู่นอกพื้นที่");
+                        tv_state_now.setText("Wellcome.");
+                        tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_info));
+                        btnCheck.setEnabled(false);
+                        btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_warning)));
+                    }
+
+                    tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
+                    tv_day.setText(""+dt.dayName());
+                    tv_time.setText(""+dt.getDateFromat("HH:mm"));
+                    tv1.setText(""+profile.getNameStaff());
+
+                    // put data to session
+                    editor.putString(Login_Activity.JSON_OBJ,s);
+                    editor.putString(Login_Activity.ID_LOCATION,idLocation);
+                    editor.putString(Login_Activity.USER_LOCATION,profile.getLocations_Array());
+                    editor.commit();
+
+                    Picasso.with(getActivity().getApplicationContext())
+                            .load(profile.getPathProfile())
+                            .resize(150, 150)
+                            .centerCrop()
+                            .into(img_prifile);
+
+                    // history
+                    if (profile.getHistory_Array()!=null){
+                        History history = new History(profile.getHistory_Array());
+                        List<String> value = history.getValue();
+                        try {
+                            JSONObject historyJson = new JSONObject(value.get(0).toString());
+                            state_check =  historyJson.getString("state");
+                            time_check = historyJson.getString("time");
+                            getKeytime = historyJson.getString("key_time");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        upDateUI(state_check,time_check);
+                    }
+                    btnCheck.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            alertConfirm();
+                        }
+                    });
+                }else{
+
+                    tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
+                    tv_day.setText(""+dt.dayName());
+                    tv_time.setText(""+dt.getDateFromat("HH:mm"));
+                    tv1.setText("Unknow People");
+                    Toast.makeText(context, "Server error.", Toast.LENGTH_SHORT).show();
+                    Log.e("Data from server","is Error.");
                     btnCheck.setEnabled(false);
-                    btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_warning)));
+                    btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_danger)));
                 }
 
-                tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
-                tv_day.setText(""+dt.dayName());
-                tv_time.setText(""+dt.getDateFromat("HH:mm"));
-                tv1.setText(""+profile.getNameStaff());
-
-                // put data to session
-                editor.putString(Login_Activity.JSON_OBJ,s);
-                editor.putString(Login_Activity.ID_LOCATION,idLocation);
-                editor.putString(Login_Activity.USER_LOCATION,profile.getLocations_Array());
-                editor.commit();
-
-                Picasso.with(getActivity().getApplicationContext())
-                        .load(profile.getPathProfile())
-                        .resize(150, 150)
-                        .centerCrop()
-                        .into(img_prifile);
-
-                // history
-                if (profile.getHistory_Array()!=null){
-                    History history = new History(profile.getHistory_Array());
-                    List<String> value = history.getValue();
-                    try {
-                        JSONObject historyJson = new JSONObject(value.get(0).toString());
-                        state_check =  historyJson.getString("state");
-                        time_check = historyJson.getString("time");
-                        getKeytime = historyJson.getString("key_time");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    upDateUI(state_check,time_check);
-                }
-                btnCheck.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        alertConfirm();
-                    }
-                });
-            }else{
-                Toast.makeText(context, "Server error.", Toast.LENGTH_SHORT).show();
-                Log.e("Data from server","is Error.");
+            }catch(Exception e){
+                Log.e("Error at onPostExecute()",e.toString());
             }
         }
     }
