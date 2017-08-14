@@ -131,17 +131,14 @@ public class MQTT_SERVICE{
                     addToHistory("Failed to subscribe");
                 }
             });
-            mqttAndroidClient.subscribe(subscribeTopic, 0, new IMqttMessageListener() {
+            mqttAndroidClient.subscribe("Device", 0, new IMqttMessageListener() {
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
                     // message Arrived!
                     String msg = new String(message.getPayload());
                     Log.d("Message", topic + " : " +msg);
                     Log.e("Message topic ",topic);
-                    Bundle b = new Bundle();
-                    b.putString("keymsg",msg);
-                    Fragment_Dashbord da = new Fragment_Dashbord();
-                    da.setArguments(b);
+
                 }
             });
 

@@ -64,7 +64,7 @@ public class Login_Activity extends AppCompatActivity{
     public static final String URL_ = "urls";
     public static final String ID_LOCATION = "id_location";
     public static final String USER_LOCATION = "location_user";
-    public static final int TIME_INTERVAL = 2000;
+    public static final int TIME_INTERVAL = 4000;
 
     private static BluetoothAdapter bAdapter;
     private static BluetoothManager bManager;
