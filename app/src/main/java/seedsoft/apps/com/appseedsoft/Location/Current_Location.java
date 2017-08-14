@@ -6,6 +6,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,8 +27,11 @@ public class Current_Location {
     private double lat_cur ,longi_cur,distance ;
     private String idLocation,namelocation ,latitude,longitude;
     private double distance_sidework;
+    private String devicelocation;
     JSONObject jsonObject;
     private Map<String,Object> location = new HashMap<String,Object>();
+
+    List<String> loactionName = new ArrayList<>();
 
     public Current_Location(String objLocation,String objCurrent){
 
@@ -39,7 +43,6 @@ public class Current_Location {
         Location[] re_lo = emums.toArray(new Location[emums.size()]);  //le_lo = Location result
 
 
-//        locationsResult[0].getDistance();
         try {
             jsonObject = new JSONObject(objCurrent);
             lat_cur = (double) jsonObject.get("lat");
@@ -51,6 +54,7 @@ public class Current_Location {
         for (int j = 0 ;j < re_lo.length;j++){
 
             location.put(re_lo[j].getId(),re_lo[j].getName());
+            loactionName.add(""+re_lo[j].getName());
 
              distance = Distance(lat_cur,longi_cur,re_lo[j].getLat(),re_lo[j].getLong(),'K');
 //            Log.d("Location",""+distance);
@@ -62,7 +66,7 @@ public class Current_Location {
                 distance_sidework = distance;
             }
         }
-//        Log.e("Data GSON",""+location.get("596709ab18b00b2b4e568632"));
+
     }
 
     public String getNamelocation(){
@@ -83,6 +87,10 @@ public class Current_Location {
     public Map<String,Object> getLocationAll(){
         return location;
     }
+    public String getDeviceLocation(){
+        return "";
+    }
+    public List<String> getLoactionName(){return loactionName;}
 
 
     private double Distance(double lat1, double lon1, double lat2, double lon2, char unit) {

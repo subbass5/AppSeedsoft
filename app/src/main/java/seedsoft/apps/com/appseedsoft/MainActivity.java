@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity
                     public boolean onNavigationItemSelected(MenuItem item) {
                         switch (item.getItemId()){
                             case R.id.action_dashboard:
-                                fragment = new Fragment_dashboardV2();
+                                fragment = new Fragment_dashboardV2(Api_key);
                                 navigationView.getMenu().getItem(0).setCheckable(true);
                                 menuItem = navigationView.getMenu().findItem(R.id.action_dash);
                                 menuItem.setCheckable(true);
@@ -329,8 +329,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-
-
     private String getGPS(){
         JSONObject json  = new JSONObject();
         gps = new GPSTracker(getApplicationContext());
@@ -366,7 +364,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
     private void checkInternet(){
         if (!connectionInternet.isConnected()){
             Toast.makeText(this, "Not Connect Internet.", Toast.LENGTH_SHORT).show();
@@ -384,7 +381,7 @@ public class MainActivity extends AppCompatActivity
                 public void onClick(DialogInterface dialog, int which) {
                     Intent goLogin = new Intent(MainActivity.this, Login_Activity.class);
                     btAdapter.stopLeScan(leScanCallback);
-                    mqtt_service.setDisconnected();
+
                     editor.clear();
                     editor.commit();
                     startActivity(goLogin);
@@ -399,7 +396,6 @@ public class MainActivity extends AppCompatActivity
         });
             builder.show();
         }
-
 
      private  void alertTime(){
          String contentString = "ใกล้ถึงเวลางานแล้ว";
@@ -602,7 +598,7 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.action_dash) {
 
-            fragment = new Fragment_dashboardV2();
+            fragment = new Fragment_dashboardV2(Api_key);
             menu = bottomNavigationView.getMenu();
             menuItem = menu.getItem(0);
             menuItem.setChecked(true);
@@ -673,7 +669,6 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         scanHandler.removeCallbacksAndMessages(scanRunnable);
         super.onDestroy();
-
     }
 
     @Override
@@ -687,10 +682,8 @@ public class MainActivity extends AppCompatActivity
             public void onClick(DialogInterface dialog, int which) {
                 scanHandler.removeCallbacksAndMessages(null);
                 btAdapter.stopLeScan(leScanCallback);
-                mqtt_service.setDisconnected();
                 editor.clear();
                 editor.commit();
-
                 finish();
                 dialog.dismiss();
             }

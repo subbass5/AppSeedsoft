@@ -24,7 +24,6 @@ public class History {
            this.jsonObj = jsonObj;
        }
 
-
        public List<String> getValue(){
           List<String> value = new ArrayList<>();
 //           Log.e("History",jsonObj);
@@ -34,13 +33,16 @@ public class History {
            History_GET[] history_gets = emums.toArray(new History_GET[emums.size()]);
 
            JSONObject jsonObject = new JSONObject();
+
            for (int i = 0 ;i <= history_gets.length-1 ;i++){
                try {
+
                    jsonObject.put("name",history_gets[i].getLocationName());
                    jsonObject.put("state",history_gets[i].getState());
                    jsonObject.put("key_time",history_gets[i].getKeyTime());
                    jsonObject.put("location_id",history_gets[i].getLocationId());
                    jsonObject.put("time",history_gets[i].getTime());
+
                } catch (JSONException e) {
                    e.printStackTrace();
                }

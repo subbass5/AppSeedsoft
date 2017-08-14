@@ -90,7 +90,7 @@ public class Fragment_CheckIn extends Fragment{
     Cursor mCursor;
 
     private TextView tv1,tv_time,tv_date,tv_location,tv_state_now,tv_day;
-    public String url = "http://128.199.196.236/api/staff?api_token=";
+    public static final String url = "http://128.199.196.236/api/staff?api_token=";
 
     MQTT_SERVICE mqtt_service;
 
@@ -127,6 +127,7 @@ public class Fragment_CheckIn extends Fragment{
     private void init(){
         dt = new Detail_mobile();
         mqtt_service = new MQTT_SERVICE(getContext());
+
         // get  session
         pref = getContext().getSharedPreferences(Login_Activity.MyPREFERENCES, 0);
         editor = pref.edit();
@@ -137,7 +138,6 @@ public class Fragment_CheckIn extends Fragment{
         editor = sharedpreferences.edit();
 
     }
-
 
     private Runnable scanRunnable = new Runnable()
     {
@@ -279,10 +279,14 @@ public class Fragment_CheckIn extends Fragment{
         }
     }
 
+    @Override
+    public void onStop() {
+        scanHandler.removeCallbacksAndMessages(scanRunnable);
+        super.onStop();
+    }
 
     @Override
     public void onDestroy() {
-        scanHandler.removeCallbacksAndMessages(scanRunnable);
         super.onDestroy();
     }
 

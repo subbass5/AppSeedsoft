@@ -40,6 +40,10 @@ public class MQTT_SERVICE{
     public static final  String clientId     = MqttClient.generateClientId();
     public static final  String username     = "seedsoft";
     public static final  String password     = "seedsoft";
+//    public static final  String broker       = "tcp://m10.cloudmqtt.com:17923";
+//    public static final  String clientId     = MqttClient.generateClientId();
+//    public static final  String username     = "jhrhggnz";
+//    public static final  String password     = "Qm1oj5Uj7soQ";
     Context context;
     MqttAndroidClient mqttAndroidClient;
     GPSTracker gps;
@@ -159,17 +163,11 @@ public class MQTT_SERVICE{
         } catch (MqttException e) {
             System.err.println("Error Publishing: " + e.getMessage());
             e.printStackTrace();
+        } catch (Exception e){
+            Log.e("Error at MQTT_SERVICE publishMessage()",e.toString());
         }
     }
 
-    public void setDisconnected(){
-        try {
-            mqttAndroidClient.disconnect();
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-
-    }
 
 
 }

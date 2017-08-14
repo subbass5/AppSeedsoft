@@ -3,7 +3,11 @@
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Location {
+import java.util.List;
+
+import seedsoft.apps.com.appseedsoft.Location.Device.Device_;
+
+ public class Location {
 
     @SerializedName("id")
     @Expose
@@ -20,6 +24,9 @@ public class Location {
     @SerializedName("distance")
     @Expose
     private Integer distance;
+    @SerializedName("device")
+    @Expose
+    private List<Device_> device = null;
 
     public String getId() {
         return id;
@@ -60,6 +67,14 @@ public class Location {
     public void setDistance(Integer distance) {
         this.distance = distance;
     }
+
+     public List<Device_> getDevice() {
+         return device;
+     }
+
+     public void setDevice(List<Device_> device) {
+         this.device = device;
+     }
 
 }
 

@@ -20,6 +20,7 @@ public class GetDataLocation {
             nameLocation.add(""+entry.getValue());
         }
     }
+
     public List<String> getIDLocation(){
         return idLocation;
     }
