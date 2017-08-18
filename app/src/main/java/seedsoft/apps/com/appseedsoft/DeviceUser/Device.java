@@ -27,7 +27,7 @@ public class Device {
         Type collationType = new TypeToken<Collection<RFID>>(){}.getType();
         Collection<RFID> emums = gson.fromJson(strJson,collationType);
         RFID[] result = emums.toArray(new RFID[emums.size()]);
-        Log.e("RESULT",""+result.length);
+//        Log.e("RESULT",""+result.length);
         for (int i  = 0;i<result.length;i++){
             listUID.add("UID: "+result[i].getUid());
             listLocationId.add(result[i].getLocationId());

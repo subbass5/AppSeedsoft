@@ -37,6 +37,8 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import rx.functions.Action1;
+import seedsoft.apps.com.appseedsoft.AsyncTask_Pack.RxJava;
 import seedsoft.apps.com.appseedsoft.Detail_mobile.Detail_mobile;
 
 import seedsoft.apps.com.appseedsoft.Detail_mobile.MyDbHelper;
@@ -93,6 +95,7 @@ public class Fragment_CheckIn extends Fragment{
     public static final String url = "http://128.199.196.236/api/staff?api_token=";
 
     MQTT_SERVICE mqtt_service;
+    RxJava rxJava;
 
     public Fragment_CheckIn(String apiKey){
         this.apiKey = apiKey;
@@ -120,11 +123,11 @@ public class Fragment_CheckIn extends Fragment{
         tv_location = (TextView) view.findViewById(R.id.txt_local);
         tv_state_now  = (TextView) view.findViewById(R.id.txt_state_now);
         tv_day = (TextView) view.findViewById(R.id.txt_day);
-        init();
 
     }
 
     private void init(){
+
         dt = new Detail_mobile();
         mqtt_service = new MQTT_SERVICE(getContext());
 
@@ -137,6 +140,92 @@ public class Fragment_CheckIn extends Fragment{
         sharedpreferences = getActivity().getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
         editor = sharedpreferences.edit();
 
+        rxJava = new RxJava(url,apiKey);
+        rxJava.getFeedDataAPI().subscribe(new Action1<String>() {
+            @Override
+            public void call(String s) {
+                Log.e("Data",s);
+                editor.putString(Login_Activity.JSON_OBJ,s);
+                editor.commit();
+            }
+        });
+
+        setUiFragment();
+
+    }
+
+    private void setUiFragment(){
+
+        String data = pref.getString(Login_Activity.JSON_OBJ,null);
+        if(!TextUtils.isEmpty(data)){
+            profile = new Profile_login(data);
+            currentLocation = new Current_Location(profile.getLocations_Array(),getGPS());
+            idLocation = currentLocation.getIdLocation();
+            name_current = currentLocation.getNamelocation();
+            lat_current = currentLocation.getLatitude();
+            long_current = currentLocation.getLongitude();
+
+            if(!TextUtils.isEmpty(name_current)){
+                tv_state_now.setText("Wellcome.");
+                tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_primary));
+                tv_location.setText(currentLocation.getNamelocation());
+            }else {
+                tv_location.setText("คุณอยู่นอกพื้นที่");
+                tv_state_now.setText("Wellcome.");
+                tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_info));
+                btnCheck.setEnabled(false);
+                btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_warning)));
+            }
+
+            tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
+            tv_day.setText(""+dt.dayName());
+            tv_time.setText(""+dt.getDateFromat("HH:mm"));
+            tv1.setText(""+profile.getNameStaff());
+
+            // put data to session
+            editor.putString(Login_Activity.JSON_OBJ,data);
+            editor.putString(Login_Activity.ID_LOCATION,idLocation);
+            editor.putString(Login_Activity.USER_LOCATION,profile.getLocations_Array());
+            editor.commit();
+
+            Picasso.with(getActivity().getApplicationContext())
+                    .load(profile.getPathProfile())
+                    .resize(150, 150)
+                    .centerCrop()
+                    .into(img_prifile);
+
+            // history
+            if (profile.getHistory_Array()!=null){
+                History history = new History(profile.getHistory_Array());
+                List<String> value = history.getValue();
+                try {
+                    JSONObject historyJson = new JSONObject(value.get(0).toString());
+                    state_check =  historyJson.getString("state");
+                    time_check = historyJson.getString("time");
+                    getKeytime = historyJson.getString("key_time");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                upDateUI(state_check,time_check);
+            }
+            btnCheck.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    alertConfirm();
+                }
+            });
+
+        }else{
+
+            tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
+            tv_day.setText(""+dt.dayName());
+            tv_time.setText(""+dt.getDateFromat("HH:mm"));
+            tv1.setText("Unknow People");
+            Toast.makeText(getContext(), "Server error.", Toast.LENGTH_SHORT).show();
+            Log.e("Data from server","is Error.");
+            btnCheck.setEnabled(false);
+            btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_danger)));
+        }
     }
 
     private Runnable scanRunnable = new Runnable()
@@ -147,32 +236,19 @@ public class Fragment_CheckIn extends Fragment{
                 tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
                 tv_day.setText(""+dt.dayName());
                 tv_time.setText(""+dt.getDateFromat("HH:mm"));
+
                 scanHandler.postDelayed(scanRunnable, scan_interval_ms);
             }catch (Exception e){
                 Log.e("Error at ScanRunnable",e.toString());
             }
-
         }
     };
-
-    private String feedDataNow(String url){
-        String json = "";
-        try {
-            json = new GetData(getContext()).execute(url).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-             return json;
-        }
 
 
     public void alertConfirm(){
       try{
-
-
-        profile = new Profile_login(feedDataNow(url+ apiKey));
+          feedData = pref.getString(Login_Activity.JSON_OBJ,null);
+          profile = new Profile_login(feedData);
         if (profile.getHistory_Array()!=null) {
             History history = new History(profile.getHistory_Array());
             List<String> value = history.getValue();
@@ -281,7 +357,14 @@ public class Fragment_CheckIn extends Fragment{
 
     @Override
     public void onStop() {
-        scanHandler.removeCallbacksAndMessages(scanRunnable);
+        try {
+            scanHandler.removeCallbacksAndMessages(scanRunnable);
+            mqtt_service.unSubscribe();
+
+        }catch (Exception e){
+            Log.e("Error at Onstop checkin",e.getMessage());
+        }
+
         super.onStop();
     }
 
@@ -295,123 +378,10 @@ public class Fragment_CheckIn extends Fragment{
         try{
             init();
             scanHandler.post(scanRunnable);
-            new GetData(getContext()).execute(url+apiKey);
-
         }catch (Exception e){
             Log.e("Error at onResume Checkin",e.toString());
         }
         super.onResume();
-    }
-
-    public class GetData extends AsyncTask<String,Voice,String> {
-        private Context context;
-
-        public GetData(Context context){
-            this.context = context;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            progress= new ProgressDialog(this.context);
-            progress.setMessage("Loading");
-            progress.show();
-        }
-
-        @Override
-        protected String doInBackground(String... params){
-            final String url = params[0];
-
-            try {
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder().url(url).build();
-                Response response = client.newCall(request).execute();
-                return response.body().string();
-
-            }catch (Exception e){
-
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            try{
-
-                if(!TextUtils.isEmpty(s)){
-                    if(progress.isShowing())  progress.dismiss();
-
-                    profile = new Profile_login(s);
-                    currentLocation = new Current_Location(profile.getLocations_Array(),getGPS());
-                    idLocation = currentLocation.getIdLocation();
-                    name_current = currentLocation.getNamelocation();
-                    lat_current = currentLocation.getLatitude();
-                    long_current = currentLocation.getLongitude();
-
-                    if(!TextUtils.isEmpty(name_current)){   // if your current side work
-                        tv_state_now.setText("Wellcome.");
-                        tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_primary));
-                        tv_location.setText(currentLocation.getNamelocation());
-                    }else {
-                        tv_location.setText("คุณอยู่นอกพื้นที่");
-                        tv_state_now.setText("Wellcome.");
-                        tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_info));
-                        btnCheck.setEnabled(false);
-                        btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_warning)));
-                    }
-
-                    tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
-                    tv_day.setText(""+dt.dayName());
-                    tv_time.setText(""+dt.getDateFromat("HH:mm"));
-                    tv1.setText(""+profile.getNameStaff());
-
-                    // put data to session
-                    editor.putString(Login_Activity.JSON_OBJ,s);
-                    editor.putString(Login_Activity.ID_LOCATION,idLocation);
-                    editor.putString(Login_Activity.USER_LOCATION,profile.getLocations_Array());
-                    editor.commit();
-
-                    Picasso.with(getActivity().getApplicationContext())
-                            .load(profile.getPathProfile())
-                            .resize(150, 150)
-                            .centerCrop()
-                            .into(img_prifile);
-
-                    // history
-                    if (profile.getHistory_Array()!=null){
-                        History history = new History(profile.getHistory_Array());
-                        List<String> value = history.getValue();
-                        try {
-                            JSONObject historyJson = new JSONObject(value.get(0).toString());
-                            state_check =  historyJson.getString("state");
-                            time_check = historyJson.getString("time");
-                            getKeytime = historyJson.getString("key_time");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        upDateUI(state_check,time_check);
-                    }
-                    btnCheck.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            alertConfirm();
-                        }
-                    });
-                }else{
-
-                    tv_date.setText(""+dt.getDateFromat("dd/MM/yyyy"));
-                    tv_day.setText(""+dt.dayName());
-                    tv_time.setText(""+dt.getDateFromat("HH:mm"));
-                    tv1.setText("Unknow People");
-                    Toast.makeText(context, "Server error.", Toast.LENGTH_SHORT).show();
-                    Log.e("Data from server","is Error.");
-                    btnCheck.setEnabled(false);
-                    btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_danger)));
-                }
-
-            }catch(Exception e){
-                Log.e("Error at onPostExecute()",e.toString());
-            }
-        }
     }
 
 

@@ -2,8 +2,6 @@ package seedsoft.apps.com.appseedsoft;
 
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -11,23 +9,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.speech.tts.Voice;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AlertDialog;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.support.design.widget.NavigationView;
@@ -40,7 +33,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -50,31 +42,22 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import rx.Subscriber;
+import rx.functions.Action1;
 import seedsoft.apps.com.appseedsoft.Accesstime.Accesstime;
 import seedsoft.apps.com.appseedsoft.AsyncTask_Pack.GetDataAPI;
+import seedsoft.apps.com.appseedsoft.AsyncTask_Pack.RxJava;
 import seedsoft.apps.com.appseedsoft.Check_internet.ConnectionDetector;
 import seedsoft.apps.com.appseedsoft.Detail_mobile.Detail_mobile;
 import seedsoft.apps.com.appseedsoft.Detail_mobile.MyDbHelper;
 import seedsoft.apps.com.appseedsoft.Fragment.Fragment_CheckIn;
-import seedsoft.apps.com.appseedsoft.Fragment.Fragment_Dashbord;
 import seedsoft.apps.com.appseedsoft.Fragment.Fragment_History;
 import seedsoft.apps.com.appseedsoft.Fragment.Fragment_Profile;
 import seedsoft.apps.com.appseedsoft.Fragment.Fragment_dashboardV2;
@@ -86,7 +69,6 @@ import seedsoft.apps.com.appseedsoft.Profile_login.Profile_login;
 import uk.co.alt236.bluetoothlelib.device.BluetoothLeDevice;
 import uk.co.alt236.bluetoothlelib.device.beacon.BeaconType;
 import uk.co.alt236.bluetoothlelib.device.beacon.BeaconUtils;
-import uk.co.alt236.bluetoothlelib.device.beacon.ibeacon.IBeaconDevice;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -111,8 +93,8 @@ public class MainActivity extends AppCompatActivity
     public static final  String topicMobile  = "/device/mobile/";
     public static final  String topicMobile_becon = "/device/mobile_beacon/";
     public static final  String topicCheckin = "/auth/mobile/";
-    public static String url = "http://128.199.196.236/api/staff?api_token=";
 
+    public static String url = "http://128.199.196.236/api/staff?api_token=";
     public String Devicename,mac,Api_key,timein,timeout;
 
     boolean st = true;
@@ -144,13 +126,14 @@ public class MainActivity extends AppCompatActivity
 
     // access times
     List<String> accesstimes ;
-    String link ;
 
+    String link_accesstime ="http://128.199.196.236/api/staff/accesstime?api_token=";
     MQTT_SERVICE mqtt_service;
     //alert
     private String timeAlert ="";
     byte count= 1;
-    ProgressDialog dialog;
+    RxJava rxJava;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,19 +154,17 @@ public class MainActivity extends AppCompatActivity
         txt_name_user = (TextView) findViewById(R.id.name_user);
 
         init();
+
         fragmentManager = getSupportFragmentManager();
         fragment = new Fragment_CheckIn(Api_key);
         transaction = fragmentManager.openTransaction();
         transaction.add(R.id.content,fragment).commit();
-
-
 
         bottomNavigationView = (BottomNavigationView)
                 findViewById(R.id.navigation);
         menu = bottomNavigationView.getMenu();
         menuItem = menu.getItem(1);
         menuItem.setChecked(true);
-
 
         bottomNavigationView.setOnNavigationItemSelectedListener
                 (new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -221,16 +202,17 @@ public class MainActivity extends AppCompatActivity
                         return true;
                     }
                 });
-
     }
+
+
     private void init(){
+
         connectionInternet = new ConnectionDetector(getApplicationContext());
         pref = getApplicationContext().getSharedPreferences(Login_Activity.MyPREFERENCES, 0);
         editor = pref.edit();
         data_mobile = new Detail_mobile();
         Api_key = pref.getString(Login_Activity.API,null);
 
-        link = "http://128.199.196.236/api/staff/acesstime?api_token="+Api_key;
         profile = new Profile_login(pref.getString(Login_Activity.JSON_OBJ,null));
         dt = new Detail_mobile();
 
@@ -242,6 +224,7 @@ public class MainActivity extends AppCompatActivity
         mqtt_service = new MQTT_SERVICE(MainActivity.this);
 
     }
+
 
     private Runnable scanRunnable = new Runnable()
     {
@@ -260,8 +243,26 @@ public class MainActivity extends AppCompatActivity
             isScanning = !isScanning;
             try{
                 feedDataTimework();
-                String feed = feeddataHistory(url+Api_key);
-                profile = new Profile_login(feed);
+
+                rxJava = new RxJava(url,Api_key);
+                rxJava.getFeedDataAPI().subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String data) {
+                        try {
+                            JSONObject jobj = new JSONObject(data);
+                            String jsonss =  jobj.getString("keycard");
+                            profile = new Profile_login(data);
+                            editor.putString(Login_Activity.Keycard,jsonss);
+                            editor.putString(Login_Activity.JSON_OBJ,data);
+                            editor.commit();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        }
+                    });
+
+                Log.d("Data rxandroid ",pref.getString(Login_Activity.JSON_OBJ,null));
                 timeAlert = getTimeAlert(profile.getID());
 
                 if(!TextUtils.isEmpty(timein) && !TextUtils.isEmpty(timeout)) {
@@ -272,11 +273,13 @@ public class MainActivity extends AppCompatActivity
                     if (t == timeIndatabase && t != -1 && getStatusCheckin().equals("Check Out")) {
                         if (count < 2) {
                             alertTime();
+                            Log.d("Logout","Auto");
                             count++;
                         }
                     }
                     try {
                         currentLocation = new Current_Location(arrayLocation, getGPS());
+                        Log.d("Name Location",""+currentLocation.getNamelocation());
                         if (state1 == false && TextUtils.isEmpty(currentLocation.getNamelocation())) {
                             checkOut();
                         }
@@ -299,10 +302,9 @@ public class MainActivity extends AppCompatActivity
         String keytime="";
         String state_check = "";
         String idLocation = "";
-//        Log.d("Auto logout","auto logout.");
 
             try {
-                profile = new Profile_login(feeddataHistory(url+Api_key));
+                profile = new Profile_login(pref.getString(Login_Activity.JSON_OBJ,null));
                 History history = new History(profile.getHistory_Array());
                 List<String> value = history.getValue();
                 JSONObject historyJson = new JSONObject(value.get(0).toString());
@@ -381,7 +383,8 @@ public class MainActivity extends AppCompatActivity
                 public void onClick(DialogInterface dialog, int which) {
                     Intent goLogin = new Intent(MainActivity.this, Login_Activity.class);
                     btAdapter.stopLeScan(leScanCallback);
-
+                    scanHandler.removeCallbacks(scanRunnable);
+                    mqtt_service.unSubscribe();
                     editor.clear();
                     editor.commit();
                     startActivity(goLogin);
@@ -487,48 +490,36 @@ public class MainActivity extends AppCompatActivity
      }
 
      private void feedDataTimework(){
-         try {
-             String gets =  new GetDataAPI(getApplicationContext()).execute(link).get();
-             if(!TextUtils.isEmpty(gets)){
-                 JSONObject obj = new JSONObject(gets);
-                 Accesstime accesstime = new Accesstime(obj.getString("accesstime"));
-                 accesstimes = accesstime.getAccesstime();
-                 int numberDay =  dt.dayNumber()-2;
-                 if(accesstimes.size()>0 && numberDay < accesstimes.size() && numberDay >= 0){
-                     obj = new JSONObject(accesstimes.get(numberDay));
-                     timein = obj.getString("timein");
-                     timeout = obj.getString("timeout");
+
+         rxJava = new RxJava(link_accesstime,Api_key);
+
+
+//         Log.d("Link ",link_accesstime+Api_key);
+         rxJava.getFeedDataAPI().subscribe(new Action1<String>() {
+             @Override
+             public void call(String data) {
+                 try {
+                     if(!TextUtils.isEmpty(data)){
+                         JSONObject obj = new JSONObject(data);
+                         Accesstime accesstime = new Accesstime(obj.getString("accesstime"));
+                         accesstimes = accesstime.getAccesstime();
+
+                         int numberDay =  dt.dayNumber()-2;
+                         if(accesstimes.size()>0 && numberDay < accesstimes.size() && numberDay >= 0){
+                             obj = new JSONObject(accesstimes.get(numberDay));
+                             timein = obj.getString("timein");
+                             timeout = obj.getString("timeout");
+                         }
+                     }else {
+                         Log.e("GETS TIME","is null");
+                     }
+                 } catch (JSONException e) {
+                     Log.e("getJSON ERROR",e.toString());
                  }
-             }else {
-                 Log.e("GETS TIME","is null");
              }
-         } catch (InterruptedException e) {
-             Log.e("get",e.toString());
-         } catch (ExecutionException e) {
-             Log.e("get",e.toString());
-         }catch (JSONException e) {
-             Log.e("getJSON ERROR",e.toString());
-         }
+         });
+
      }
-
-     private String feeddataHistory(String urls){
-         String feed = "";
-         try {
-             feed = new GetDataAPI(getApplicationContext()).execute(urls).get();
-//             Log.e("URL",urls);
-         } catch (InterruptedException e) {
-             e.printStackTrace();
-             showDialog(e.toString());
-         } catch (ExecutionException e) {
-             e.printStackTrace();
-             showDialog(e.toString());
-         }
-         return feed;
-     }
-
-     private void showDialog(String dialog){
-
-    }
 
 
     private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback()
@@ -621,7 +612,7 @@ public class MainActivity extends AppCompatActivity
             confrimLogout();
 
         }else if (id == R.id.action_profile) {
-            fragment = new Fragment_Profile();
+            fragment = new Fragment_Profile(Api_key);
 
         }else if(id == R.id.action_settime){
 //            setTimeAlert();
@@ -685,6 +676,7 @@ public class MainActivity extends AppCompatActivity
                 editor.clear();
                 editor.commit();
                 finish();
+                mqtt_service.unSubscribe();
                 dialog.dismiss();
             }
         });

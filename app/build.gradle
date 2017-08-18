@@ -44,12 +44,16 @@ dependencies {
     compile 'uk.co.alt236:bluetooth-le-library-android:1.0.0'
     compile 'de.hdodenhof:circleimageview:2.1.0'
     compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
-    compile 'com.google.code.gson:gson:2.2.4'
-    compile 'com.squareup.okhttp:okhttp:2.5.0'
+    // picture cycle
     compile 'com.squareup.picasso:picasso:2.5.2'
-
+    // mqtt paho
     compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.1'
     compile 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+    //rx java okhttp gson
+    compile 'io.reactivex:rxandroid:1.1.0'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
+    compile 'com.google.code.gson:gson:2.2.4'
+
 
     testCompile 'junit:junit:4.12'
 }

@@ -16,19 +16,19 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/img_profile"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginTop="16dp"
+            <!--<de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"-->
+                <!--android:id="@+id/img_profile"-->
+                <!--android:layout_width="120dp"-->
+                <!--android:layout_height="120dp"-->
+                <!--android:layout_marginLeft="8dp"-->
+                <!--android:layout_marginRight="8dp"-->
+                <!--android:layout_marginTop="16dp"-->
 
-                app:civ_border_color="#FFF"
-                app:civ_border_width="2dp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                <!--app:civ_border_color="#FFF"-->
+                <!--app:civ_border_width="2dp"-->
+                <!--app:layout_constraintLeft_toLeftOf="parent"-->
+                <!--app:layout_constraintRight_toRightOf="parent"-->
+                <!--app:layout_constraintTop_toTopOf="parent" />-->
 
         </LinearLayout>
 
@@ -43,6 +43,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+                <TextView
+                    android:text=" Name : "
+                    android:drawableLeft="@drawable/ic_position"
+                    android:layout_marginTop="10dp"
+                    android:textSize="20sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
                 <TextView
                     android:id="@+id/tv_name_profile"
@@ -50,7 +57,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
 
-                    android:textSize="24sp" />
+                    android:textSize="20sp" />
             </LinearLayout>
 
 
@@ -162,23 +169,51 @@
             android:layout_marginTop="20dp"
             android:layout_weight="3"
             android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="20dp"
+                    android:drawableLeft="@drawable/ic_key"
+                    android:text=" UID :"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/tv_keynumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="10dp"
+                    android:text="RFID"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+
             <TextView
-                android:textSize="30sp"
+                android:id="@+id/tv_lblaccess"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
                 android:layout_marginTop="10dp"
-                android:layout_marginLeft="30dp"
-                android:layout_marginBottom="5dp"
-                android:text="RFID"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:text="Name Access Control"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
-          <ListView
-              android:id="@+id/list_device"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
 
-          </ListView>
+            <ListView
+                android:id="@+id/list_device"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </ListView>
 
         </LinearLayout>
+
     </LinearLayout>
 
 </FrameLayout>

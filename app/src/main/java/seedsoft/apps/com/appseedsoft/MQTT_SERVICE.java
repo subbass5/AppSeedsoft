@@ -82,7 +82,6 @@ public class MQTT_SERVICE{
 
     });
 
-
         //setup mqtt
     MqttConnectOptions option = new MqttConnectOptions();
         option.setUserName(username);
@@ -91,22 +90,22 @@ public class MQTT_SERVICE{
         option.setCleanSession(false);
 
         try{
-        mqttAndroidClient.connect(option, null, new IMqttActionListener() {
-            @Override
-            public void onSuccess(IMqttToken asyncActionToken) {
-                DisconnectedBufferOptions disconnectBufferOption = new DisconnectedBufferOptions();
-                disconnectBufferOption.setBufferEnabled(true);
-                disconnectBufferOption.setBufferSize(100);
-                disconnectBufferOption.setPersistBuffer(false);
-                disconnectBufferOption.setDeleteOldestMessages(false);
-                mqttAndroidClient.setBufferOpts(disconnectBufferOption);
-                subscribeToTopic();
-            }
-            @Override
-            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                addToHistory("Failed to connect to "+ broker);
-            }
-        });
+            mqttAndroidClient.connect(option, null, new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    DisconnectedBufferOptions disconnectBufferOption = new DisconnectedBufferOptions();
+                    disconnectBufferOption.setBufferEnabled(true);
+                    disconnectBufferOption.setBufferSize(100);
+                    disconnectBufferOption.setPersistBuffer(false);
+                    disconnectBufferOption.setDeleteOldestMessages(false);
+                    mqttAndroidClient.setBufferOpts(disconnectBufferOption);
+                    subscribeToTopic();
+                }
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    addToHistory("Failed to connect to "+ broker);
+                }
+            });
 
     }catch (Exception e){
         e.printStackTrace();
@@ -148,7 +147,7 @@ public class MQTT_SERVICE{
         }
     }
 
-    public void publishMessage(String topic,String state){
+    public boolean publishMessage(String topic,String state){
         try {
             MqttMessage message = new MqttMessage();
             message.setPayload(state.getBytes());
@@ -157,11 +156,40 @@ public class MQTT_SERVICE{
             if(!mqttAndroidClient.isConnected()){
                 addToHistory(mqttAndroidClient.getBufferedMessageCount() + " messages in buffer.");
             }
+            return true;
         } catch (MqttException e) {
             System.err.println("Error Publishing: " + e.getMessage());
             e.printStackTrace();
+            return false;
         } catch (Exception e){
             Log.e("Error at MQTT_SERVICE publishMessage()",e.toString());
+            return false;
+        }
+
+    }
+
+    public boolean unSubscribe(){
+
+        try {
+            IMqttToken unsubToken = mqttAndroidClient.unsubscribe(subscribeTopic);
+            unsubToken.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // The subscription could successfully be removed from the client
+                    Log.d("Unsub","unsubscribe!");
+
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken,
+                                      Throwable exception) {
+                    Log.d("Unsub","fail!");
+                }
+            });
+            return true;
+        } catch (MqttException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

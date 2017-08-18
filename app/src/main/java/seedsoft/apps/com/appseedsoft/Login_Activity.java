@@ -40,6 +40,13 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import rx.Observable;
+import rx.Observer;
+import rx.Scheduler;
+import rx.Subscriber;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
+import seedsoft.apps.com.appseedsoft.AsyncTask_Pack.RxJava;
 import seedsoft.apps.com.appseedsoft.Check_internet.ConnectionDetector;
 import seedsoft.apps.com.appseedsoft.GPSTracker.GPSTracker;
 
@@ -64,6 +71,7 @@ public class Login_Activity extends AppCompatActivity{
     public static final String URL_ = "urls";
     public static final String ID_LOCATION = "id_location";
     public static final String USER_LOCATION = "location_user";
+    public static final String Keycard = "keycard";
     public static final int TIME_INTERVAL = 4000;
 
     private static BluetoothAdapter bAdapter;
@@ -94,6 +102,7 @@ public class Login_Activity extends AppCompatActivity{
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                initLogin("user","1234");
                 String username = et_username.getText().toString().trim();
                 String password = et_password.getText().toString().trim();
                 if (username.length() == 0 && password.length()== 0){
@@ -107,12 +116,7 @@ public class Login_Activity extends AppCompatActivity{
                 }else if(username.length() > 0 ){
                         final String USER = username;
                         final String PASS = password;
-                    try{
-                        new PostClass(Login_Activity.this,USER,PASS).execute(URL_AUTH);
-                    }catch (Exception e){
-                        Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
-                    }
-
+                    initLogin(USER,PASS);
                 }
             }
         });
@@ -166,141 +170,94 @@ public class Login_Activity extends AppCompatActivity{
     }
 
 
-    private class PostClass extends AsyncTask<String, Void, String> {
-        private final Context context;
-        private final String user;
-        private final String pass;
-
-
-        public PostClass(Context c,String user,String pass){
-            this.context = c;
-            this.user = user;
-            this.pass = pass;
-        }
-        protected void onPreExecute(){
-            progress= new ProgressDialog(this.context);
-            progress.setMessage("Loading");
-            progress.show();
-        }
-        @Override
-        protected String doInBackground(String... params) {
-            try {
-
-                URL url = new URL(params[0]);
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-                String urlParameters = "username="+user+"&password="+pass;
-                connection.setRequestMethod("POST");
-                connection.setDoOutput(true);
-                DataOutputStream dStream = new DataOutputStream(connection.getOutputStream());
-                dStream.writeBytes(urlParameters);
-                dStream.flush();
-                dStream.close();
-                BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String line = "";
-                final StringBuilder responseOutput = new StringBuilder();
-                while((line = br.readLine()) != null ) {
-                    responseOutput.append(line);
-                }
-                br.close();
-                return  responseOutput.toString();
-
-
-            } catch (MalformedURLException e) {
-
-                e.printStackTrace();
-            } catch (IOException e) {
-
-                e.printStackTrace();
+    private void initLogin(final String user,final String pass ){
+        final String url = URL_AUTH;
+        Observable<String> loginJson = Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(Subscriber<? super String> subscriber) {
+                String result = loginSystem(url,user,pass);
+                subscriber.onNext(result);
             }
-            return null;
-        }
+        }).subscribeOn(Schedulers.newThread());
+        loginJson.subscribe(new Observer<String>() {
+            @Override
+            public void onCompleted() {
 
-        protected void onPostExecute(String jsonString) {
-//
-//            if(progress.isShowing()){
-//                progress.dismiss();
-//            }
-            String check = "";
-            if(!TextUtils.isEmpty(jsonString)){
-                try {
-                    objJson = new JSONObject(jsonString);
-                    check = objJson.get("api_token").toString();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                if(check.length()> 0 ){
-                    String url = "http://128.199.196.236/api/staff?api_token=";
-                    new GetData(context,check).execute(url+check);
-                }else {
-                    if(progress.isShowing()) progress.dismiss();
-                    Toast.makeText(getApplicationContext(), "Login Fail", Toast.LENGTH_SHORT).show();
-                    et_username.setText("");
-                    et_password.setText("");
-                }
+            }
 
-            }else {
-                if(progress.isShowing()){
-                    progress.dismiss();
-                }
+            @Override
+            public void onError(Throwable e) {
+                Log.e("onError at rxjava",e.getMessage());
 
-                Toast.makeText(context, "เข้าสู่ระบบ ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", Toast.LENGTH_SHORT).show();
-                et_username.setText("");
-                et_password.setText("");
+            }
+
+            @Override
+            public void onNext(String s) {
+                goMain(s);
+                Log.d("api",s);
+            }
+        });
+
+    }
+
+    private void goMain(String api){
+        if(!TextUtils.isEmpty(api)){
+            try {
+                JSONObject object = new JSONObject(api);
+                String url = "http://128.199.196.236/api/staff?api_token=";
+                final String api_token = object.getString("api_token");
+                final RxJava rx = new RxJava(url,api_token);
+                rx.getFeedDataAPI().subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String s) {
+                        Log.d("Res",s);
+                        Intent goMain = new Intent(Login_Activity.this,MainActivity.class);
+                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                        editor.putString(USER,et_username.getText().toString());
+                        editor.putString(PASS,et_password.getText().toString());
+                        editor.putString(API,api_token);
+                        editor.putString(URL_,URL_AUTH);
+                        editor.putString(JSON_OBJ,s);
+                        editor.commit();
+                        startActivity(goMain);
+                        finish();
+                    }
+                });
+            } catch (JSONException e) {
+                Log.e("Eror at json goMain()",e.getMessage());
+            }catch (Exception e){
+                Log.e("Eror at goMain()",e.getMessage());
             }
         }
     }
 
+    private String loginSystem(final String url ,final String user,final String password){
 
-    public class GetData extends AsyncTask<String,Void,String>{
-        String apikey = "";
-        Context context;
-        public GetData(Context context,String apikey){
-            this.context = context;
-            this.apikey = apikey;
-        }
-
-        @Override
-        protected void onPreExecute() {
-//            progress= new ProgressDialog(this.context);
-//            progress.setMessage("Loading");
-//            progress.show();
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            final String url = params[0];
-//            Toast.makeText(getApplicationContext(), ""+url, Toast.LENGTH_SHORT).show();
-            try {
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder().url(url).build();
-                Response response = client.newCall(request).execute();
-                return response.body().string();
-            }catch (Exception e){
-
+        try {
+            URL urls = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection)urls.openConnection();
+            String urlParameters = "username="+user+"&password="+password;
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            DataOutputStream dStream = new DataOutputStream(connection.getOutputStream());
+            dStream.writeBytes(urlParameters);
+            dStream.flush();
+            dStream.close();
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line = "";
+            final StringBuilder responseOutput = new StringBuilder();
+            while((line = br.readLine()) != null ) {
+                responseOutput.append(line);
             }
+            br.close();
+            return  responseOutput.toString();
+
+        } catch (MalformedURLException e) {
+            Log.e("Error at class login",e.getMessage());
             return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            scanHandler.removeCallbacks(scanRunnable);
-
-            if(progress.isShowing()){
-                progress.dismiss();
-            }
-            if(!TextUtils.isEmpty(s)){
-                Intent goMain = new Intent(Login_Activity.this,MainActivity.class);
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-                editor.putString(USER,et_username.getText().toString());
-                editor.putString(PASS,et_password.getText().toString());
-                editor.putString(API,apikey);
-                editor.putString(URL_,URL_AUTH);
-                editor.putString(JSON_OBJ,s);
-                editor.commit();
-                startActivity(goMain);
-                finish();
-            }
-
+        } catch (IOException e) {
+            Log.e("Error at class login",e.getMessage());
+            return null;
         }
     }
 
@@ -342,10 +299,10 @@ public class Login_Activity extends AppCompatActivity{
                                             builder.create().show();
                                             return;
                                         }else{
-                                            final String USER = sharedpreferences.getString("username",null);
-                                            final String PASS = sharedpreferences.getString("password",null);
+                                            final String USER = sharedpreferences.getString(Login_Activity.USER,null);
+                                            final String PASS = sharedpreferences.getString(Login_Activity.PASS,null);
                                             if (!TextUtils.isEmpty(USER) && !TextUtils.isEmpty(PASS))
-                                                new PostClass(Login_Activity.this,USER,PASS).execute(URL_AUTH);
+                                              initLogin(USER,PASS);
                                      }
                         }
                 }
