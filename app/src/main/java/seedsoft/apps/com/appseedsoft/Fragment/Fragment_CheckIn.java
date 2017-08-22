@@ -144,7 +144,7 @@ public class Fragment_CheckIn extends Fragment{
         rxJava.getFeedDataAPI().subscribe(new Action1<String>() {
             @Override
             public void call(String s) {
-                Log.e("Data",s);
+//                Log.e("Data",s);
                 editor.putString(Login_Activity.JSON_OBJ,s);
                 editor.commit();
             }
@@ -155,7 +155,6 @@ public class Fragment_CheckIn extends Fragment{
     }
 
     private void setUiFragment(){
-
         String data = pref.getString(Login_Activity.JSON_OBJ,null);
         if(!TextUtils.isEmpty(data)){
             profile = new Profile_login(data);
@@ -358,9 +357,8 @@ public class Fragment_CheckIn extends Fragment{
     @Override
     public void onStop() {
         try {
-            scanHandler.removeCallbacksAndMessages(scanRunnable);
             mqtt_service.unSubscribe();
-
+            scanHandler.removeCallbacksAndMessages(scanRunnable);
         }catch (Exception e){
             Log.e("Error at Onstop checkin",e.getMessage());
         }

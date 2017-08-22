@@ -39,11 +39,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.Callable;
 
 import rx.Observable;
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import seedsoft.apps.com.appseedsoft.AsyncTask_Pack.RxJava;
@@ -72,7 +74,7 @@ public class Login_Activity extends AppCompatActivity{
     public static final String ID_LOCATION = "id_location";
     public static final String USER_LOCATION = "location_user";
     public static final String Keycard = "keycard";
-    public static final int TIME_INTERVAL = 4000;
+    public static final int TIME_INTERVAL = 2500;
 
     private static BluetoothAdapter bAdapter;
     private static BluetoothManager bManager;
@@ -172,17 +174,19 @@ public class Login_Activity extends AppCompatActivity{
 
     private void initLogin(final String user,final String pass ){
         final String url = URL_AUTH;
-        Observable<String> loginJson = Observable.create(new Observable.OnSubscribe<String>() {
+        final Observable<String> loginJson = Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(Subscriber<? super String> subscriber) {
                 String result = loginSystem(url,user,pass);
                 subscriber.onNext(result);
             }
-        }).subscribeOn(Schedulers.newThread());
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+
         loginJson.subscribe(new Observer<String>() {
             @Override
             public void onCompleted() {
-
+                et_username.setText(null);
+                et_password.setText(null);
             }
 
             @Override
@@ -193,8 +197,14 @@ public class Login_Activity extends AppCompatActivity{
 
             @Override
             public void onNext(String s) {
-                goMain(s);
-                Log.d("api",s);
+
+                if (s.length() > 70) {
+                    goMain(s);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Loin fail.", Toast.LENGTH_SHORT).show();
+                    et_username.setText(null);
+                    et_password.setText(null);
+                }
             }
         });
 
@@ -207,7 +217,9 @@ public class Login_Activity extends AppCompatActivity{
                 String url = "http://128.199.196.236/api/staff?api_token=";
                 final String api_token = object.getString("api_token");
                 final RxJava rx = new RxJava(url,api_token);
-                rx.getFeedDataAPI().subscribe(new Action1<String>() {
+
+                   rx.getFeedDataAPI().subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<String>() {
                     @Override
                     public void call(String s) {
                         Log.d("Res",s);
@@ -223,13 +235,16 @@ public class Login_Activity extends AppCompatActivity{
                         finish();
                     }
                 });
+
             } catch (JSONException e) {
                 Log.e("Eror at json goMain()",e.getMessage());
+
             }catch (Exception e){
                 Log.e("Eror at goMain()",e.getMessage());
             }
         }
     }
+
 
     private String loginSystem(final String url ,final String user,final String password){
 

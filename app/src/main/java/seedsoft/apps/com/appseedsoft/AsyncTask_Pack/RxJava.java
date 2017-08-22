@@ -10,6 +10,7 @@ import rx.Observable;
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
@@ -35,12 +36,16 @@ public class RxJava {
                     Log.e("Error at RxJava class",e.getMessage());
                 }
             }
-        }).subscribeOn(Schedulers.newThread());
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());;
 
     }
 
     public Observable<String> getFeedDataAPI() {
         return feedDataAPI;
+    }
+
+    public String getResult(){
+        return result;
     }
 
     private String feeddata(final String url, final String api_key){

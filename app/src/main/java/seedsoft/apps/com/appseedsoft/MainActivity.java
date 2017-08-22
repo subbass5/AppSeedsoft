@@ -207,24 +207,28 @@ public class MainActivity extends AppCompatActivity
 
     private void init(){
 
-        connectionInternet = new ConnectionDetector(getApplicationContext());
-        pref = getApplicationContext().getSharedPreferences(Login_Activity.MyPREFERENCES, 0);
-        editor = pref.edit();
-        data_mobile = new Detail_mobile();
-        Api_key = pref.getString(Login_Activity.API,null);
+        try{
 
-        profile = new Profile_login(pref.getString(Login_Activity.JSON_OBJ,null));
-        dt = new Detail_mobile();
+            connectionInternet = new ConnectionDetector(getApplicationContext());
+            pref = getApplicationContext().getSharedPreferences(Login_Activity.MyPREFERENCES, 0);
+            editor = pref.edit();
+            data_mobile = new Detail_mobile();
+            Api_key = pref.getString(Login_Activity.API,null);
 
-        // init BLE
-        btManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
-        btAdapter = btManager.getAdapter();
-        Devicename = btAdapter.getName();
-        mac = data_mobile.getMac();
-        mqtt_service = new MQTT_SERVICE(MainActivity.this);
+            profile = new Profile_login(pref.getString(Login_Activity.JSON_OBJ,null));
+            dt = new Detail_mobile();
 
+            // init BLE
+            btManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
+            btAdapter = btManager.getAdapter();
+            Devicename = btAdapter.getName();
+            mac = data_mobile.getMac();
+            mqtt_service = new MQTT_SERVICE(MainActivity.this);
+
+        }catch (Exception e){
+            Log.e("Erro at MainActivity init", e.getMessage());
+        }
     }
-
 
     private Runnable scanRunnable = new Runnable()
     {
@@ -262,8 +266,9 @@ public class MainActivity extends AppCompatActivity
                         }
                     });
 
-                Log.d("Data rxandroid ",pref.getString(Login_Activity.JSON_OBJ,null));
+//                Log.d("Data rxandroid ",pref.getString(Login_Activity.JSON_OBJ,null));
                 timeAlert = getTimeAlert(profile.getID());
+//                Log.e("Time alert",timeAlert);
 
                 if(!TextUtils.isEmpty(timein) && !TextUtils.isEmpty(timeout)) {
                     boolean state1 = dt.getLengthTime(timein, timeout);
@@ -273,13 +278,14 @@ public class MainActivity extends AppCompatActivity
                     if (t == timeIndatabase && t != -1 && getStatusCheckin().equals("Check Out")) {
                         if (count < 2) {
                             alertTime();
-                            Log.d("Logout","Auto");
+//                            Log.d("Logout","Auto");
                             count++;
                         }
                     }
+
                     try {
                         currentLocation = new Current_Location(arrayLocation, getGPS());
-                        Log.d("Name Location",""+currentLocation.getNamelocation());
+//                        Log.d("Name Location",""+currentLocation.getNamelocation());
                         if (state1 == false && TextUtils.isEmpty(currentLocation.getNamelocation())) {
                             checkOut();
                         }
@@ -323,7 +329,7 @@ public class MainActivity extends AppCompatActivity
                         objs.put("long",""+gps.getLongitude());
                         objs.put("time",time);
                         mqtt_service.publishMessage(topicCheckin,objs.toString());
-                        Log.d("LOGOUTAUTO",state_check+":"+keytime);
+//                        Log.d("LOGOUTAUTO",state_check+":"+keytime);
                 }
 
             } catch (JSONException e) {
@@ -421,12 +427,18 @@ public class MainActivity extends AppCompatActivity
      private void  setTimeSpiner(){
 
          String[] s  = {"5 นาที","10 นาที","15 นาที","20 นาที","25 นาที","30 นาที"};
+         String timesAlertUser = getTimeAlert(profile.getID());
          final ArrayAdapter<String> adapter  = new ArrayAdapter<String>(MainActivity.this,
                  android.R.layout.simple_spinner_dropdown_item,s);
          final Spinner sp = new Spinner(MainActivity.this);
          sp.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                  ViewGroup.LayoutParams.WRAP_CONTENT));
          sp.setAdapter(adapter);
+
+         if(timesAlertUser != null){
+             sp.setSelection(adapter.getPosition(timesAlertUser+" นาที"));
+         }
+
          AlertDialog.Builder bulider = new AlertDialog.Builder(MainActivity.this);
          bulider.setView(sp);
          bulider.setTitle("เลือกเวลาแจ้งเตือน");
@@ -455,7 +467,7 @@ public class MainActivity extends AppCompatActivity
                              +" SET "+MyDbHelper.COL_Time+" = "+strSub[0]+
                              " WHERE "+MyDbHelper.COL_STAFF_ID_2+" == '"+profile.getID()+"';",null);
                      mCursor.moveToFirst();
-                     Toast.makeText(MainActivity.this, "Update data successfully.", Toast.LENGTH_SHORT).show();
+                     Toast.makeText(MainActivity.this, "บันทึกเวลาเเสร็จสมบูรณ์.", Toast.LENGTH_SHORT).show();
 
                  }else {
                      mCursor = mDb.rawQuery("INSERT INTO "+MyDbHelper.TABLE_NAME_ALERT_TIME+" ("+MyDbHelper.COL_STAFF_ID_2
@@ -492,7 +504,6 @@ public class MainActivity extends AppCompatActivity
      private void feedDataTimework(){
 
          rxJava = new RxJava(link_accesstime,Api_key);
-
 
 //         Log.d("Link ",link_accesstime+Api_key);
          rxJava.getFeedDataAPI().subscribe(new Action1<String>() {
@@ -553,9 +564,9 @@ public class MainActivity extends AppCompatActivity
                         }
                         mqtt_service.publishMessage(topicMobile_becon, String.valueOf(obj));
                     } catch (JSONException e) {
-                        Log.e("Error send JSON",e.toString());
+                        Log.e("Error send JSON",e.getMessage());
                     }catch (Exception E){
-                        Log.e("Error send becon",E.toString());
+                        Log.e("Error send becon",E.getMessage());
                     }
                 }
             }
@@ -675,9 +686,9 @@ public class MainActivity extends AppCompatActivity
                 btAdapter.stopLeScan(leScanCallback);
                 editor.clear();
                 editor.commit();
-                finish();
                 mqtt_service.unSubscribe();
                 dialog.dismiss();
+                finish();
             }
         });
 
