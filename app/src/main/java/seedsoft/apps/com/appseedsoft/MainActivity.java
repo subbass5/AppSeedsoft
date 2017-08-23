@@ -502,9 +502,7 @@ public class MainActivity extends AppCompatActivity
      }
 
      private void feedDataTimework(){
-
-         rxJava = new RxJava(link_accesstime,Api_key);
-
+       try{rxJava = new RxJava(link_accesstime,Api_key);
 //         Log.d("Link ",link_accesstime+Api_key);
          rxJava.getFeedDataAPI().subscribe(new Action1<String>() {
              @Override
@@ -529,6 +527,9 @@ public class MainActivity extends AppCompatActivity
                  }
              }
          });
+     }catch (Exception e){
+        Log.e("Error at feedDataTimework() Mainactivity",e.getMessage());
+    }
 
      }
 
