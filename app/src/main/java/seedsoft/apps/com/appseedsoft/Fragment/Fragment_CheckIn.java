@@ -381,7 +381,4 @@ public class Fragment_CheckIn extends Fragment{
         }
         super.onResume();
     }
-
-
-
 }

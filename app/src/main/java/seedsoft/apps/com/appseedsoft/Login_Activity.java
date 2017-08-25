@@ -134,7 +134,6 @@ public class Login_Activity extends AppCompatActivity{
         }
     };
 
-
     @Override
     public void onBackPressed() {
         AlertDialog.Builder dialog2 = new AlertDialog.Builder(Login_Activity.this);
@@ -191,7 +190,10 @@ public class Login_Activity extends AppCompatActivity{
 
             @Override
             public void onError(Throwable e) {
+                Toast.makeText(Login_Activity.this, "Log in fail.", Toast.LENGTH_SHORT).show();
                 Log.e("onError at rxjava",e.getMessage());
+                et_username.setText(null);
+                et_password.setText(null);
 
             }
 

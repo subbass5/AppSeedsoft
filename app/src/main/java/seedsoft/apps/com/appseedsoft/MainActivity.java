@@ -134,6 +134,10 @@ public class MainActivity extends AppCompatActivity
     byte count= 1;
     RxJava rxJava;
 
+    public MainActivity(){
+
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -297,7 +301,7 @@ public class MainActivity extends AppCompatActivity
             }catch (Exception e){
                 Log.e("Error",e.toString());
             }
-
+            Log.e("DATA",pref.getString(Login_Activity.API,null));
             scanHandler.postDelayed(scanRunnable, scan_interval_ms);
     }
     };
