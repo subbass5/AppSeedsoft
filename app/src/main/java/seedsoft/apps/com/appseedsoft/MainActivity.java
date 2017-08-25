@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
             }catch (Exception e){
-                Log.e("Error",e.toString());
+                Log.e("Error",e.getMessage());
             }
             Log.e("DATA",pref.getString(Login_Activity.API,null));
             scanHandler.postDelayed(scanRunnable, scan_interval_ms);
@@ -498,11 +498,13 @@ public class MainActivity extends AppCompatActivity
              while (!mCursor.isAfterLast()){
                  timeAlert = mCursor.getString(mCursor.getColumnIndex(MyDbHelper.COL_Time));
                  mCursor.moveToNext();
+                 mDb.close();
              }
              return timeAlert;
          }else {
              return "-1";
          }
+
      }
 
      private void feedDataTimework(){
@@ -643,7 +645,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-
     @Override
     protected void onResume() {
 
@@ -674,7 +675,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
+        mqtt_service.unSubscribe();
         scanHandler.removeCallbacksAndMessages(scanRunnable);
+        mqtt_service.unSubscribe();
         super.onDestroy();
     }
 

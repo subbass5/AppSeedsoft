@@ -366,10 +366,6 @@ public class Fragment_CheckIn extends Fragment{
         super.onStop();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
 
     @Override
     public void onResume() {
