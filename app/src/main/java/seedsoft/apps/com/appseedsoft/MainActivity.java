@@ -471,7 +471,7 @@ public class MainActivity extends AppCompatActivity
                              +" SET "+MyDbHelper.COL_Time+" = "+strSub[0]+
                              " WHERE "+MyDbHelper.COL_STAFF_ID_2+" == '"+profile.getID()+"';",null);
                      mCursor.moveToFirst();
-                     Toast.makeText(MainActivity.this, "บันทึกเวลาเเสร็จสมบูรณ์.", Toast.LENGTH_SHORT).show();
+                     Toast.makeText(MainActivity.this, "บันทึกเวลาเสร็จสมบูรณ์.", Toast.LENGTH_SHORT).show();
 
                  }else {
                      mCursor = mDb.rawQuery("INSERT INTO "+MyDbHelper.TABLE_NAME_ALERT_TIME+" ("+MyDbHelper.COL_STAFF_ID_2
