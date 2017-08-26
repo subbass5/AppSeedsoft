@@ -89,7 +89,6 @@ public class Login_Activity extends AppCompatActivity{
         btnLogin = (Button) findViewById(R.id.btn_login);
         tv_connect = (TextView) findViewById(R.id.txt_connected);
         checkconnectInternet = new ConnectionDetector(this);
-// new Object
         sharedpreferences = getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
         et_username = (EditText) findViewById(R.id.et_user);
         et_password = (EditText) findViewById(R.id.et_password);
@@ -105,6 +104,7 @@ public class Login_Activity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
 //                initLogin("user","1234");
+
                 String username = et_username.getText().toString().trim();
                 String password = et_password.getText().toString().trim();
                 if (username.length() == 0 && password.length()== 0){
@@ -172,6 +172,12 @@ public class Login_Activity extends AppCompatActivity{
 
 
     private void initLogin(final String user,final String pass ){
+
+        progress = new ProgressDialog(Login_Activity.this);
+        progress.setMessage("Loading....");
+        progress.setIcon(R.drawable.ap);
+        progress.show();
+
         final String url = URL_AUTH;
         final Observable<String> loginJson = Observable.create(new Observable.OnSubscribe<String>() {
             @Override
@@ -199,6 +205,8 @@ public class Login_Activity extends AppCompatActivity{
 
             @Override
             public void onNext(String s) {
+
+                if(progress.isShowing()) progress.dismiss();
 
                 if (s.length() > 70) {
                     goMain(s);
@@ -296,9 +304,7 @@ public class Login_Activity extends AppCompatActivity{
 
                         }else{
                          AlertDialog.Builder builder = new AlertDialog.Builder(Login_Activity.this);
-
                                 LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
                                      if( !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ) {
                                             builder.setMessage("กรุณาเปิด GPS."); // Want to enable?
                                             builder.setPositiveButton("เปิด", new DialogInterface.OnClickListener() {
@@ -316,10 +322,13 @@ public class Login_Activity extends AppCompatActivity{
                                             builder.create().show();
                                             return;
                                         }else{
+
                                             final String USER = sharedpreferences.getString(Login_Activity.USER,null);
                                             final String PASS = sharedpreferences.getString(Login_Activity.PASS,null);
-                                            if (!TextUtils.isEmpty(USER) && !TextUtils.isEmpty(PASS))
-                                              initLogin(USER,PASS);
+                                            if (!TextUtils.isEmpty(USER) && !TextUtils.isEmpty(PASS)){
+                                                initLogin(USER,PASS);
+                                            }
+
                                      }
                         }
                 }

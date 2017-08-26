@@ -34,6 +34,7 @@ import seedsoft.apps.com.appseedsoft.Fragment.Fragment_Dashbord;
 import seedsoft.apps.com.appseedsoft.GPSTracker.GPSTracker;
 
 public class MQTT_SERVICE{
+
     public static final String TAGMQTT = "MQTT_Seed-soft";
     public String subscribeTopic = "/device/door/";
     public static final  String broker       = "tcp://188.166.188.78:1883";
@@ -47,47 +48,57 @@ public class MQTT_SERVICE{
     Context context;
     MqttAndroidClient mqttAndroidClient;
     GPSTracker gps;
-    JSONObject obj = new JSONObject();
-    SharedPreferences pref ;
-    SharedPreferences.Editor editor;
+
     public MQTT_SERVICE(Context context){
+
         this.context = context;
         gps = new GPSTracker(context);
+        initMQTT();
+
+    }
+
+    private void initMQTT(){
+
         mqttAndroidClient = new MqttAndroidClient(context,broker,clientId);
-
-
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
-        @Override
-        public void connectComplete(boolean reconnect, String serverURI) {
-            if (reconnect){
-                addToHistory(serverURI);
-                subscribeToTopic();
-            }else {
-                addToHistory("Connected to "+serverURI);
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
+                if (reconnect){
+                    addToHistory(serverURI);
+                    subscribeToTopic();
+                }else {
+                    addToHistory("Connected to "+serverURI);
+                }
             }
-        }
-        @Override
-        public void connectionLost(Throwable cause) {
-            addToHistory("The Connection was lost.");
-        }
+            @Override
+            public void connectionLost(Throwable cause) {
+                addToHistory("The Connection was lost.");
+            }
 
-        @Override
-        public void messageArrived(String topic, MqttMessage message) throws Exception {
-            addToHistory("Incoming message: " + new String(message.getPayload()));
-        }
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                addToHistory("Incoming message: " + new String(message.getPayload()));
+            }
 
-        @Override
-        public void deliveryComplete(IMqttDeliveryToken token) {
-        }
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+            }
 
-    });
+        });
 
         //setup mqtt
-    MqttConnectOptions option = new MqttConnectOptions();
+        MqttConnectOptions option = new MqttConnectOptions();
         option.setUserName(username);
         option.setPassword(password.toCharArray());
         option.setAutomaticReconnect(true);
         option.setCleanSession(false);
+        doConnect(option);
+
+    }
+
+
+
+    private void doConnect(MqttConnectOptions option){
 
         try{
             mqttAndroidClient.connect(option, null, new IMqttActionListener() {
@@ -107,10 +118,11 @@ public class MQTT_SERVICE{
                 }
             });
 
-    }catch (Exception e){
-        e.printStackTrace();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
-}
 
     private void addToHistory(String mainText){
 //        Log.d(TAGMQTT,mainText);

@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity
             btAdapter = btManager.getAdapter();
             Devicename = btAdapter.getName();
             mac = data_mobile.getMac();
-            mqtt_service = new MQTT_SERVICE(MainActivity.this);
+//            mqtt_service = new MQTT_SERVICE(MainActivity.this);
 
         }catch (Exception e){
             Log.e("Erro at MainActivity init", e.getMessage());
@@ -238,18 +238,21 @@ public class MainActivity extends AppCompatActivity
     {
         @Override
         public void run() {
-            checkInternet();
-            if (isScanning) {
-                if (btAdapter != null) {
-                    btAdapter.stopLeScan(leScanCallback);
-                }
-            } else {
-                if (btAdapter != null) {
-                    btAdapter.startLeScan(leScanCallback);
-                }
-            }
-            isScanning = !isScanning;
             try{
+                checkInternet();
+                if (isScanning) {
+                    if (btAdapter != null) {
+                        btAdapter.stopLeScan(leScanCallback);
+                        mqtt_service.unSubscribe();
+                    }
+                } else {
+                    if (btAdapter != null) {
+                        btAdapter.startLeScan(leScanCallback);
+                        mqtt_service = new MQTT_SERVICE(MainActivity.this);
+                    }
+                }
+                isScanning = !isScanning;
+
                 feedDataTimework();
 
                 rxJava = new RxJava(url,Api_key);
@@ -266,13 +269,11 @@ public class MainActivity extends AppCompatActivity
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
                         }
                     });
 
-//                Log.d("Data rxandroid ",pref.getString(Login_Activity.JSON_OBJ,null));
+
                 timeAlert = getTimeAlert(profile.getID());
-//                Log.e("Time alert",timeAlert);
 
                 if(!TextUtils.isEmpty(timein) && !TextUtils.isEmpty(timeout)) {
                     boolean state1 = dt.getLengthTime(timein, timeout);
@@ -282,17 +283,16 @@ public class MainActivity extends AppCompatActivity
                     if (t == timeIndatabase && t != -1 && getStatusCheckin().equals("Check Out")) {
                         if (count < 2) {
                             alertTime();
-//                            Log.d("Logout","Auto");
                             count++;
                         }
                     }
 
                     try {
                         currentLocation = new Current_Location(arrayLocation, getGPS());
-//                        Log.d("Name Location",""+currentLocation.getNamelocation());
                         if (state1 == false && TextUtils.isEmpty(currentLocation.getNamelocation())) {
                             checkOut();
                         }
+
                     } catch (Exception e) {
                         Log.e("ERROR Main", "" + e);
                     }
