@@ -301,7 +301,7 @@ public class MainActivity extends AppCompatActivity
             }catch (Exception e){
                 Log.e("Error",e.getMessage());
             }
-            Log.e("DATA",pref.getString(Login_Activity.API,null));
+//            Log.e("DATA",pref.getString(Login_Activity.API,null));
             scanHandler.postDelayed(scanRunnable, scan_interval_ms);
     }
     };
@@ -675,7 +675,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
-        mqtt_service.unSubscribe();
+
         scanHandler.removeCallbacksAndMessages(scanRunnable);
         mqtt_service.unSubscribe();
         super.onDestroy();

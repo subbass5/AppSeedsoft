@@ -314,12 +314,16 @@ public class Fragment_CheckIn extends Fragment{
         try{
             if (status.equals("Check In")) {
                 btnCheck.setText("Check Out");
-                btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_danger)));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_danger)));
+                }
                 tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_success));
                 tv_state_now.setText("Status : " + status + "  Time :" + time);
             } else {
                 btnCheck.setText("Check In");
-                btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_info)));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_info)));
+                }
                 tv_state_now.setText("Status : " + status + "  Time :" + time);
                 tv_state_now.setTextColor(getActivity().getResources().getColor(R.color.bootstrap_brand_warning));
 //                Toast.makeText(getActivity().getApplicationContext(), "Check Out successfully.", Toast.LENGTH_SHORT).show();

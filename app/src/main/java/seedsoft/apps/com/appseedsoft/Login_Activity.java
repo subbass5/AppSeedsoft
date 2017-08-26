@@ -161,12 +161,16 @@ public class Login_Activity extends AppCompatActivity{
         if (checkconnectInternet.isConnected()){
             tv_connect.setText("");
             btnLogin.setEnabled(true);
-            btnLogin.setBackgroundTintList( ColorStateList.valueOf(getResources().getColor(R.color.bootstrap_brand_success)));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                btnLogin.setBackgroundTintList( ColorStateList.valueOf(getResources().getColor(R.color.bootstrap_brand_success)));
+            }
         }else {
             tv_connect.setText("Please connect to internet.");
             tv_connect.setTextColor(getResources().getColor(R.color.bootstrap_brand_warning));
             btnLogin.setEnabled(false);
-            btnLogin.setBackgroundTintList( ColorStateList.valueOf(getResources().getColor(R.color.bootstrap_brand_danger)));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                btnLogin.setBackgroundTintList( ColorStateList.valueOf(getResources().getColor(R.color.bootstrap_brand_danger)));
+            }
         }
     }
 
@@ -285,6 +289,18 @@ public class Login_Activity extends AppCompatActivity{
             return null;
         }
     }
+    public void alertNotsupport(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(Login_Activity.this);
+        builder.setMessage("Version Android Not Support!!");
+        builder.setIcon(R.drawable.ap);
+        builder.setPositiveButton("ตกลง", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        builder.show();
+    }
 
 
     @Override
@@ -292,11 +308,16 @@ public class Login_Activity extends AppCompatActivity{
         super.onResume();
         checkInternet();
 
-        if(Build.VERSION.SDK_INT < 18)
-          {
-              Toast.makeText(Login_Activity.this, "Android Version Not Support.", Toast.LENGTH_SHORT).show();
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+            alertNotsupport();
+            btnLogin.setEnabled(false);
+            et_username.setEnabled(false);
+            et_password.setEnabled(false);
+            tv_connect.setText("Device not support.");
+            btnLogin.setBackgroundColor(getResources().getColor(R.color.bootstrap_brand_danger));
 
-          }else{
+        }else{
+            btnLogin.setEnabled(true);
             if (!bAdapter.isEnabled()){
 
                 Intent request_openBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
