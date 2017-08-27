@@ -271,12 +271,14 @@ public class MainActivity extends AppCompatActivity
                         }
                         }
                     });
-
-
+                
                 timeAlert = getTimeAlert(profile.getID());
 
+//                timein = "10:43";
+//                timeout = "18:00";
                 if(!TextUtils.isEmpty(timein) && !TextUtils.isEmpty(timeout)) {
                     boolean state1 = dt.getLengthTime(timein, timeout);
+                    Log.e("STATE",""+state1);
                     String arrayLocation = pref.getString(Login_Activity.USER_LOCATION, null);
                     long t = dt.diffTime(dt.getDateFromat("HH:mm"), timein);
                     long timeIndatabase = Integer.parseInt(timeAlert);
@@ -288,9 +290,20 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     try {
+
                         currentLocation = new Current_Location(arrayLocation, getGPS());
                         if (state1 == false && TextUtils.isEmpty(currentLocation.getNamelocation())) {
-                            checkOut();
+                            String url = "http://128.199.196.236/api/staff?api_token=";
+                            rxJava = new RxJava(url,pref.getString(Login_Activity.API,null));
+                            rxJava.getFeedDataAPI().subscribe(new Action1<String>() {
+                                @Override
+                                public void call(String s) {
+//                                    Log.e("Datasssss",s);
+                                    checkOut(s);
+//                                    Toast.makeText(MainActivity.this, ""+s, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
                         }
 
                     } catch (Exception e) {
@@ -306,7 +319,7 @@ public class MainActivity extends AppCompatActivity
     }
     };
 
-    private void checkOut(){
+    private void checkOut(String data){
 
         String time = dt.getDateFromat("dd/MM/yyyy HH:mm");
         String keytime="";
@@ -314,7 +327,7 @@ public class MainActivity extends AppCompatActivity
         String idLocation = "";
 
             try {
-                profile = new Profile_login(pref.getString(Login_Activity.JSON_OBJ,null));
+                profile = new Profile_login(data);
                 History history = new History(profile.getHistory_Array());
                 List<String> value = history.getValue();
                 JSONObject historyJson = new JSONObject(value.get(0).toString());
@@ -325,19 +338,23 @@ public class MainActivity extends AppCompatActivity
                 JSONObject objs = new JSONObject();
 
                 if(!TextUtils.isEmpty(state_check) && state_check.equals("Check In")){
-                        objs.put("keyStaff",profile.getID());
-                        objs.put("state","Check Out");
-                        objs.put("id_location",idLocation);
-                        objs.put("lat",""+gps.getLatitude());
-                        objs.put("key_time",keytime);
-                        objs.put("long",""+gps.getLongitude());
-                        objs.put("time",time);
-                        mqtt_service.publishMessage(topicCheckin,objs.toString());
-//                        Log.d("LOGOUTAUTO",state_check+":"+keytime);
+//                        mqtt_service = new MQTT_SERVICE(MainActivity.this);
+                            objs.put("keyStaff",profile.getID());
+                            objs.put("state","Check Out");
+                            objs.put("id_location",idLocation);
+                            objs.put("lat",""+gps.getLatitude());
+                            objs.put("key_time",keytime);
+                            objs.put("long",""+gps.getLongitude());
+                            objs.put("time",time);
+                            mqtt_service.publishMessage(topicCheckin,objs.toString());
+    //                        Log.d("LOGOUTAUTO",state_check+":"+keytime);
+//                            mqtt_service.unSubscribe();
                 }
 
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e("Error at logout auto  JSON",e.getMessage());
+            }catch (Exception e){
+                Log.e("Error at logout auto",e.getMessage());
             }
         }
 
@@ -555,6 +572,7 @@ public class MainActivity extends AppCompatActivity
             if(BeaconUtils.getBeaconType(devicele) == BeaconType.IBEACON ){
 
                 if (Rssi_int < 77 && st == true){
+
                     try {
                         obj.put("hostname",Devicename);
                         obj.put("macAddress",mac);
@@ -570,6 +588,7 @@ public class MainActivity extends AppCompatActivity
                             obj.put("longitude",gps.getLongitude());
                         }
                         mqtt_service.publishMessage(topicMobile_becon, String.valueOf(obj));
+//                        mqtt_service.unSubscribe();
                     } catch (JSONException e) {
                         Log.e("Error send JSON",e.getMessage());
                     }catch (Exception E){
