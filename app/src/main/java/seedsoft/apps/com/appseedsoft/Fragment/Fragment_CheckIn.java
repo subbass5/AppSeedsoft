@@ -209,11 +209,7 @@ public class Fragment_CheckIn extends Fragment{
                     upDateUI(state_check,time_check);
                 }
 
-
-                if(progress.isShowing()){
-                    progress.dismiss();
-                }
-
+                
                 btnCheck.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -233,6 +229,10 @@ public class Fragment_CheckIn extends Fragment{
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     btnCheck.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.bootstrap_brand_danger)));
                 }
+
+            }
+            if(progress.isShowing()){
+                progress.dismiss();
             }
 
         }catch (Exception e){
@@ -390,7 +390,10 @@ public class Fragment_CheckIn extends Fragment{
             init();
             progress = new ProgressDialog(getContext());
             progress.setMessage("Loading....");
-            progress.show();
+            if(!progress.isShowing())
+                progress.show();
+
+
             scanHandler.post(scanRunnable);
         }catch (Exception e){
             Log.e("Error at onResume Checkin",e.toString());

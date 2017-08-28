@@ -218,6 +218,7 @@ public class Login_Activity extends AppCompatActivity{
                     Toast.makeText(getApplicationContext(), "Loin fail.", Toast.LENGTH_SHORT).show();
                     et_username.setText(null);
                     et_password.setText(null);
+                    et_username.setSelection(0);
                 }
             }
         });

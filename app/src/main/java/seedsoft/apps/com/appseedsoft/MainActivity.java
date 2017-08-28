@@ -278,7 +278,7 @@ public class MainActivity extends AppCompatActivity
 //                timeout = "18:00";
                 if(!TextUtils.isEmpty(timein) && !TextUtils.isEmpty(timeout)) {
                     boolean state1 = dt.getLengthTime(timein, timeout);
-                    Log.e("STATE",""+state1);
+//                    Log.e("STATE",""+state1);
                     String arrayLocation = pref.getString(Login_Activity.USER_LOCATION, null);
                     long t = dt.diffTime(dt.getDateFromat("HH:mm"), timein);
                     long timeIndatabase = Integer.parseInt(timeAlert);
@@ -338,7 +338,7 @@ public class MainActivity extends AppCompatActivity
                 JSONObject objs = new JSONObject();
 
                 if(!TextUtils.isEmpty(state_check) && state_check.equals("Check In")){
-//                        mqtt_service = new MQTT_SERVICE(MainActivity.this);
+//                        MQTT_SERVICE mqtt_service2 = new MQTT_SERVICE(MainActivity.this);
                             objs.put("keyStaff",profile.getID());
                             objs.put("state","Check Out");
                             objs.put("id_location",idLocation);
@@ -347,8 +347,8 @@ public class MainActivity extends AppCompatActivity
                             objs.put("long",""+gps.getLongitude());
                             objs.put("time",time);
                             mqtt_service.publishMessage(topicCheckin,objs.toString());
-    //                        Log.d("LOGOUTAUTO",state_check+":"+keytime);
-//                            mqtt_service.unSubscribe();
+                            Log.d("LOGOUTAUTO",state_check+":"+keytime);
+//                            mqtt_service2.unSubscribe();
                 }
 
             } catch (JSONException e) {
