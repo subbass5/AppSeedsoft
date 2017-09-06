@@ -38,26 +38,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
-
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import rx.Subscriber;
 import rx.functions.Action1;
 import seedsoft.apps.com.appseedsoft.Accesstime.Accesstime;
-import seedsoft.apps.com.appseedsoft.AsyncTask_Pack.GetDataAPI;
 import seedsoft.apps.com.appseedsoft.AsyncTask_Pack.RxJava;
 import seedsoft.apps.com.appseedsoft.Check_internet.ConnectionDetector;
 import seedsoft.apps.com.appseedsoft.Detail_mobile.Detail_mobile;
 import seedsoft.apps.com.appseedsoft.Detail_mobile.MyDbHelper;
 import seedsoft.apps.com.appseedsoft.Fragment.Fragment_CheckIn;
+import seedsoft.apps.com.appseedsoft.Fragment.Fragment_CheckinV2;
 import seedsoft.apps.com.appseedsoft.Fragment.Fragment_History;
 import seedsoft.apps.com.appseedsoft.Fragment.Fragment_Profile;
 import seedsoft.apps.com.appseedsoft.Fragment.Fragment_dashboardV2;
@@ -79,7 +71,7 @@ public class MainActivity extends AppCompatActivity
     private BluetoothManager btManager;
     private BluetoothAdapter btAdapter;
     private Handler scanHandler = new Handler();
-    private int scan_interval_ms = 10000;
+    private int scan_interval_ms = 8000;
     private boolean isScanning = false;
     private GPSTracker gps;
 
@@ -87,7 +79,6 @@ public class MainActivity extends AppCompatActivity
     public static final String TAG = "MQTT_Seed-soft";
     public static final String subscribeTopic = "/device/door/";
     public static final  String broker       = "tcp://188.166.188.78:1883";
-    public static final  String clientId     = MqttClient.generateClientId();
     public static final  String username     = "seedsoft";
     public static final  String password     = "seedsoft";
     public static final  String topicMobile  = "/device/mobile/";
@@ -104,35 +95,35 @@ public class MainActivity extends AppCompatActivity
     private FragmentManager fragmentManager;
     private ConnectionDetector connectionInternet;
 
-    SharedPreferences pref;
-    SharedPreferences.Editor editor;
-    Profile_login profile ;
-    TextView txt_name_user;
-    Menu menu ;
-    MenuItem menuItem ;
-    BottomNavigationView bottomNavigationView;
+    private SharedPreferences pref;
+    private SharedPreferences.Editor editor;
+    private Profile_login profile ;
+    private TextView txt_name_user;
+    private Menu menu ;
+    private MenuItem menuItem ;
+    private BottomNavigationView bottomNavigationView;
 
-    FragmentTransaction transaction;
-    ActionBarDrawerToggle toggle;
-    DrawerLayout drawer;
-    NavigationView navigationView;
-    Current_Location currentLocation;
-    Detail_mobile dt;
+    private  FragmentTransaction transaction;
+    private ActionBarDrawerToggle toggle;
+    private DrawerLayout drawer;
+    private NavigationView navigationView;
+    private Current_Location currentLocation;
+    private Detail_mobile dt;
 
     //sqlite
-    SQLiteDatabase mDb;
-    MyDbHelper mHelper;
-    Cursor mCursor ;
+    private SQLiteDatabase mDb;
+    private MyDbHelper mHelper;
+    private Cursor mCursor ;
 
     // access times
-    List<String> accesstimes ;
+    private List<String> accesstimes ;
 
-    String link_accesstime ="http://128.199.196.236/api/staff/accesstime?api_token=";
-    MQTT_SERVICE mqtt_service;
+    private String link_accesstime ="http://128.199.196.236/api/staff/accesstime?api_token=";
+    private MQTT_SERVICE mqtt_service;
     //alert
     private String timeAlert ="";
     byte count= 1;
-    RxJava rxJava;
+    private RxJava rxJava;
 
     public MainActivity(){
 
@@ -160,7 +151,7 @@ public class MainActivity extends AppCompatActivity
         init();
 
         fragmentManager = getSupportFragmentManager();
-        fragment = new Fragment_CheckIn(Api_key);
+        fragment = new Fragment_CheckinV2(Api_key);
         transaction = fragmentManager.openTransaction();
         transaction.add(R.id.content,fragment).commit();
 
@@ -184,7 +175,7 @@ public class MainActivity extends AppCompatActivity
                                 break;
 
                             case R.id.action_checkin:
-                                fragment = new Fragment_CheckIn(Api_key);
+                                fragment = new Fragment_CheckinV2(Api_key);
                                 navigationView.getMenu().getItem(1).setCheckable(true);
                                 menuItem = navigationView.getMenu().findItem(R.id.action_check);
                                 menuItem.setCheckable(true);
@@ -633,7 +624,7 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.action_check) {
 
-            fragment = new Fragment_CheckIn(Api_key);
+            fragment = new Fragment_CheckinV2(Api_key);
             menu = bottomNavigationView.getMenu();
             menuItem = menu.getItem(1);
             menuItem.setChecked(true);

@@ -5,7 +5,8 @@
         <item
             android:id="@+id/action_dash"
             android:icon="@drawable/ic_dashboard_black_24dp"
-            android:title="@string/action1" />
+            android:title="@string/action1"
+            />
         <item
             android:id="@+id/action_check"
             android:icon="@drawable/ic_place_black_24dp"

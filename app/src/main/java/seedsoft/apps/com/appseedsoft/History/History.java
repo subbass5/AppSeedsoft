@@ -41,6 +41,7 @@ public class History {
                    jsonObject.put("state",history_gets[i].getState());
                    jsonObject.put("key_time",history_gets[i].getKeyTime());
                    jsonObject.put("location_id",history_gets[i].getLocationId());
+
                    jsonObject.put("time",history_gets[i].getTime());
 
                } catch (JSONException e) {

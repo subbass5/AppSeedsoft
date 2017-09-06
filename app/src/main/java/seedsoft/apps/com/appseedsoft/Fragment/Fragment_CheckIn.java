@@ -105,7 +105,7 @@ public class Fragment_CheckIn extends Fragment{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View v = inflater.inflate(R.layout.fragment_checkin,container,false);
+        View v = inflater.inflate(R.layout.fragment_checkin_v2,container,false);
 
         return v;
     }
@@ -392,7 +392,6 @@ public class Fragment_CheckIn extends Fragment{
             progress.setMessage("Loading....");
             if(!progress.isShowing())
                 progress.show();
-
 
             scanHandler.post(scanRunnable);
         }catch (Exception e){
